@@ -1,1 +1,11 @@
-blah blah blah
+Data structures!
+Meta of the project is to create a simple yet efficent to use 
+one header data structures, with minimized header dependency.
+
+current dependency:
+	string.h in array.h (memmove needed)
+
+For use just simply copy headers to your project!
+
+Idea from list.h file from linux kernel.
+God bless open source!

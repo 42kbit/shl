@@ -6,7 +6,8 @@ struct list_node{
 };
 typedef struct list_node list_node_t;
 
-#define list_entry(ptr, type, name) \
+/* biggest hack ever */
+#define get_entry(ptr, type, name) \
 	((type*)((char*)ptr-(unsigned long)&(((type*)0)->name)))
 
 #define list_for_each(list, iter) \
@@ -16,14 +17,14 @@ typedef struct list_node list_node_t;
 	for(iter = list->prev; !list_is_head(list, iter); iter = iter->prev)
 
 #define list_for_each_entry(list, iter, ent_name, type, member) \
-	for(iter = list->next, ent_name = list_entry(iter, type, member); \
+	for(iter = list->next, ent_name = get_entry(iter, type, member); \
 		!list_is_head(list, iter); \
-		iter = iter->next, ent_name = list_entry(iter, type, member))
+		iter = iter->next, ent_name = get_entry(iter, type, member))
 
 #define list_for_each_entry_prev(list, iter, ent_name, type, member) \
-	for(iter = list->prev, ent_name = list_entry(iter, type, member); \
+	for(iter = list->prev, ent_name = get_entry(iter, type, member); \
 		!list_is_head(list, iter); \
-		iter = iter->prev, ent_name = list_entry(iter, type, member))
+		iter = iter->prev, ent_name = get_entry(iter, type, member))
 
 #define list_for_each_entry_auto(list, iter, ent_name, member) \
 	list_for_each_entry(list, iter, ent_name, typeof(*ent_name), member)

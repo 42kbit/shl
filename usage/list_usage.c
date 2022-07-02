@@ -8,7 +8,7 @@ struct data {
 
 
 int sdata_by_data (struct list_node* node, void* data){
-	return list_entry(node, struct data, list)->data == *((int*)data);
+	return get_entry(node, struct data, list)->data == *((int*)data);
 }
 
 int main(void){
