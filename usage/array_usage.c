@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include "../array.h"
 
 #ifndef MAX
@@ -10,20 +12,29 @@ int int_cmp(const void* i0, const void* i1){
 	return (v0 - v1);
 }
 
+#define ARR_SIZE 999999
+
 int main(void){
-	int arr[9] = {11, 22, 33, 44, 55, 66, 77, 88, 99};
-	int element = 23;
-	int ind = __arr_get_ceil(
-			arr, 
-			sizeof(*arr),
-			0,
-			8,
-			&element,
-			int_cmp);
-	printf("ceil of %d, is at %u\n", element, ind);
-	arr_bin_insert_auto(arr, 9, &element, int_cmp);
-	for(int i = 0; i < 9; i++){
+	srand((unsigned long)time(NULL));
+	int *arr = (int*)malloc(ARR_SIZE * sizeof(int));
+	memset(arr, 0, ARR_SIZE * sizeof(int));
+	for (int i = 0; i < ARR_SIZE; i++){
+		*(char*)((char*)arr+i*sizeof(int)+3) = (char)0x80;
+	}
+	for (int i = 0; i < ARR_SIZE; i++){
+		int val = i;
+		/*arr_bin_insert_auto(arr, ARR_SIZE, &val, int_cmp);*/
+		__arr_bin_insert(
+				arr,
+				ARR_SIZE,
+				4,
+				&val,
+				int_cmp
+				);
+	}
+	for (int i = 0; i < ARR_SIZE; i++){
 		printf("%d\n", arr[i]);
 	}
+	free(arr);
 	return 0;
 }

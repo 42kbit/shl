@@ -3,6 +3,7 @@
 
 #include <string.h>
 
+/* im sorry, this is too magic */
 static inline int __arr_get_ceil(
 		void* arr,
 		unsigned int width,
@@ -36,16 +37,18 @@ static inline int __arr_get_ceil(
 					element,
 					cmp);
 	}
-	if (mid - 1 >= low && cmp(element, ptr+(mid-1)*width) > 0)
-		return mid;
-	else
-		return __arr_get_ceil(
-				arr,
-				width,
-				low,
-				mid-1,
-				element,
-				cmp);
+	else {
+		if (mid - 1 >= low && cmp(element, ptr+(mid-1)*width) > 0)
+			return mid;
+		else
+			return __arr_get_ceil(
+					arr,
+					width,
+					low,
+					mid-1,
+					element,
+					cmp);
+	}
 }
 
 static inline int __arr_bin_insert(
@@ -57,8 +60,9 @@ static inline int __arr_bin_insert(
 		)
 {
 	int index = __arr_get_ceil(arr, width, 0, size - 1, element, cmp);
-	memmove(arr+(index+1)*width, arr+(index)*width, (size-index)*width);
-	memcpy(arr+index*width, element, width);
+	memmove((char*)arr+(index+1)*width, 
+			(char*)arr+index*width, (size-index-1)*width);
+	memcpy((char*)arr+index*width, element, width);
 	return index;
 }
 

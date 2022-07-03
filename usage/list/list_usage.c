@@ -36,8 +36,8 @@ int main(void){
 	int val = 22;
 	list_remove(list_find(list, (void*)&val, sdata_by_data));
 	
-	struct list_node* cur;
-	struct data* ent;
+	struct list_node* cur = NULL;
+	struct data* ent = NULL;
 	list_for_each_entry_prev(list, cur, ent, struct data, list){
 		printf("%d\n", ent->data);
 	}

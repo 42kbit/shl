@@ -58,7 +58,7 @@ int main(void){
 				obj_cmp_node);
 	}
 	
-	element = 8;
+	unsigned int element = 3;
 	struct tree_node* stree =
 		bst_find(root, &element, obj_cmp_key);
 	bst_remove_subtree(root, stree, obj_cmp_node);
