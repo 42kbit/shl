@@ -3,12 +3,20 @@
 
 #include <string.h>
 
+typedef unsigned long ul_t;
+
+static inline int __arr_insert(void* arr, ul_t width, ul_t to, 
+		void* element)
+{
+	memcpy((char*)arr+to*width, element, width); 
+}
+
 /* im sorry, this is too magic */
 static inline int __arr_get_ceil(
 		void* arr,
-		unsigned int width,
-		unsigned int low,
-		unsigned int high,
+		ul_t width,
+		ul_t low,
+		ul_t high,
 		void* element,
 		int (*cmp)(const void*, const void*))
 {
@@ -53,8 +61,8 @@ static inline int __arr_get_ceil(
 
 static inline int __arr_bin_insert(
 		void* arr,
-		unsigned int size,
-		unsigned int width,
+		ul_t size,
+		ul_t width,
 		void* element,
 		int (*cmp)(const void*, const void*)
 		)
@@ -68,5 +76,8 @@ static inline int __arr_bin_insert(
 
 #define arr_bin_insert_auto(ptr, size, element, cmp) \
 	__arr_bin_insert(ptr, size, sizeof(*element), element, cmp)
+
+#define arr_insert(ptr, index, element) \
+	__arr_insert(ptr, sizeof(*element), index, element)
 
 #endif /* _H_ARRAY_H */
