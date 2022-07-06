@@ -19,16 +19,16 @@ int main(void){
 	struct obj obj1;
 	obj1.data = 44;
 
-	struct tree_node* root = &(obj0.bst_node);
-	tree_init_node(root);
-	/*        55
-	 *       /  \
-	 *    NULL   NULL
-	 */
-
+	struct tree_node* root = NULL;
+	struct tree_node* obj0_node = &(obj0.bst_node);
 	struct tree_node* obj1_node = &(obj1.bst_node);
 	tree_init_node(obj1_node);
 
+	bst_insert(&root, obj0_node, obj_cmp_node);
+	/*	  55
+	 *	 /  \
+	 *     NULL NULL
+	 */
 	bst_insert(&root, obj1_node, obj_cmp_node);
 	/*        55
 	 *       /  \

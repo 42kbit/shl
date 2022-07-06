@@ -46,22 +46,27 @@ __define_tree_most(right)
 /* insert in bst, see usate/bin_tree/1_insert_and_find/insert.c
  * for example */
 static inline struct tree_node* bst_insert(
-		struct tree_node* root,
+		struct tree_node** proot,
 		struct tree_node* node,
 		tree_cmp_node_t cmp)
 {
+	if (!proot)
+		return NULL;
+	if (!*proot)
+		return (*proot = node);
+	struct tree_node* root = *proot;
 	int res = cmp(node, root);
 	if (res > 0){
 		if (!root->right)
 			return (root->right = node);
 		else
-			return bst_insert(root->right, node, cmp);
+			return bst_insert(&(root->right), node, cmp);
 	}
 	else if (res < 0){
 		if (!root->left)
 			return (root->left = node);
 		else
-			return bst_insert(root->left, node, cmp);
+			return bst_insert(&(root->left), node, cmp);
 	}
 	return NULL;
 }

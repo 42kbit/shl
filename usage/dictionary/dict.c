@@ -36,10 +36,7 @@ static inline void dict_free(struct tree_node* node){
 	sizeof(x) / sizeof(*x)
 
 int main(void){
-	struct dict_node* root_obj = (struct dict_node*)malloc(
-			sizeof(struct dict_node));
-	strcpy(root_obj->data, "i am root");
-	struct tree_node* root = &(root_obj->bst_node);
+	struct tree_node* root = NULL;
 	char *strings[] = {"hello", "world", "random", 
 		"banana", "apple", "ca;lsdfj", "da;osdfkj", "zasfadfafs", "y", "z", "x"};
 	struct dict_node** dnodes = (struct dict_node**)malloc(
@@ -49,7 +46,7 @@ int main(void){
 				sizeof(struct dict_node));
 		memset(dnodes[i], 0, sizeof(struct dict_node));
 		strncpy(dnodes[i]->data, strings[i], DICT_NODE_DLEN);
-		bst_insert(root, &(dnodes[i]->bst_node), dict_cmp_node);
+		bst_insert(&root, &(dnodes[i]->bst_node), dict_cmp_node);
 	}
 	struct tree_node* iter = NULL;
 	/* prints in alphabetical order ;) */

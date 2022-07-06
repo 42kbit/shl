@@ -48,7 +48,7 @@ int main(void){
 	for(int i = 0; i < arr_size(ins_vals); i++){
 		tree_init_node(&(objs[i].bst_node));
 		objs[i].data = ins_vals[i];
-		bst_insert(root, &(objs[i].bst_node), 
+		bst_insert(&root, &(objs[i].bst_node), 
 				obj_cmp_node);
 	}
 	
