@@ -61,7 +61,7 @@ int main(void){
 	unsigned int element = 3;
 	struct tree_node* stree =
 		bst_find(root, &element, obj_cmp_key);
-	bst_remove_subtree(root, stree, obj_cmp_node);
+	bst_remove_subtree(root, stree, obj_cmp_node, NULL);
 	obj_print_tree(root);
 	return 0;
 }

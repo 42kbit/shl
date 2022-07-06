@@ -205,14 +205,17 @@ static inline struct tree_node* bst_remove(
 static inline void bst_remove_subtree(
 		struct tree_node* root,
 		struct tree_node* stree,
-		tree_cmp_node_t cmp)
+		tree_cmp_node_t cmp,
+		void (*free_func)(struct tree_node* node))
 {
-	/* TODO: do todo */
 	struct tree_node* stree_parent =
 		bst_find_parent(root, stree, cmp), *stree_cpy = stree;
 	struct tree_node* iter = NULL;
 	while (iter = bst_find_next(stree, NULL, cmp)){
+		struct tree_node* old_stree = stree;
 		stree = bst_remove(stree, stree, cmp);
+		if (free_func)
+			free_func(old_stree);
 	}
 	if (stree_parent){
 		__tree_repl_child(stree_parent, stree_cpy, NULL);
