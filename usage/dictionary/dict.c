@@ -44,7 +44,6 @@ int main(void){
 	for (int i = 0; i < arr_cnt(strings); i++){
 		dnodes[i] = (struct dict_node*)malloc(
 				sizeof(struct dict_node));
-		memset(dnodes[i], 0, sizeof(struct dict_node));
 		strncpy(dnodes[i]->data, strings[i], DICT_NODE_DLEN);
 		bst_insert(&root, &(dnodes[i]->bst_node), dict_cmp_node);
 	}
