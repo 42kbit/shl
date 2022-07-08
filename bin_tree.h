@@ -43,6 +43,31 @@ static inline struct tree_node* tree_most_##dir( 	\
 __define_tree_most(left)
 __define_tree_most(right)
 
+
+static inline void rbt_rotate_left(
+		struct tree_node** node)
+{
+	if (!((*node)->right))
+		return;
+	struct tree_node *n_node = (*node)->right,
+			 *n_right = n_node->left;
+	(*node)->right = n_right;
+	n_node->left = *node;
+	*node = n_node;
+}
+
+static inline void rbt_rotate_right(
+		struct tree_node** node)
+{
+	if (!((*node)->left))
+		return;
+	struct tree_node *n_node = (*node)->left,
+			 *n_left = n_node->right;
+	(*node)->left = n_left;
+	n_node->right = *node;
+	*node = n_node;
+}
+
 /* insert in bst, see usate/bin_tree/1_insert_and_find/insert.c
  * for example */
 static inline struct tree_node* bst_insert(

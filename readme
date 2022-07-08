@@ -5,6 +5,10 @@ one header data structures, with minimized header dependency.
 current dependency:
 	string.h in array.h (memmove needed)
 
+current priority:
+	RED-BLACK TREE. (after it's completion, bin_tree.h will
+		pass away... sadly)
+
 For use just simply copy headers to your project!
 
 Idea from list.h file from linux kernel.
