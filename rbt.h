@@ -14,7 +14,7 @@
 #define RBT_RED 1
 
 struct rbt_node{
-	struct rbt_node *right, *left;
+	struct rbt_node *right, *left, *parent;
 	char color;
 };
 
@@ -38,7 +38,7 @@ __define_tree_most(right)
 static inline void rbt_init_node(
 		struct rbt_node* node)
 {
-	node->left = node->right = NULL;
+	node->left = node->right = node->parent = NULL;
 	node->color = RBT_RED;
 }
 
@@ -62,18 +62,11 @@ static inline struct rbt_node* rbt_find(
 }
 
 static inline struct rbt_node* rbt_parent(
-		struct rbt_node* root,
-		struct rbt_node* child,
-		rbt_cmp_node ncmp)
+		struct rbt_node* child)
 {
-	if (!root || root == child || !child)
+	if (!child)
 		return NULL;
-	int res = ncmp(root, child);
-	if (root->left == child || root->right == child)
-		return root;
-	else if (res > 0)
-		return rbt_parent(root->left, child, ncmp);
-	return rbt_parent(root->right, child, ncmp);
+	return child->parent;
 }
 
 static inline void __rbt_turn_left(
@@ -85,13 +78,17 @@ static inline void __rbt_turn_left(
 		return;
 	struct rbt_node *n_node = (*node)->right,
 			*n_right = n_node->left,
-			*parent = rbt_parent(root, *node, cmp);
+			*parent = rbt_parent(*node);
 	if (parent){
 		if (parent->left == *node)
 			parent->left = n_node;
 		else
 			parent->right = n_node;
 	}
+	if (n_right)
+		n_right->parent = *node;
+	n_node->parent = parent;
+	(*node)->parent = n_node;
 	(*node)->right = n_right;
 	n_node->left = *node;
 	*node = n_node;
@@ -106,13 +103,17 @@ static inline void __rbt_turn_right(
 		return;
 	struct rbt_node *n_node = (*node)->left,
 			*n_left = n_node->right,
-			*parent = rbt_parent(root, *node, cmp);
+			*parent = rbt_parent(*node);
 	if (parent){
 		if (parent->left == *node)
 			parent->left = n_node;
 		else
 			parent->right = n_node;
 	}
+	if (n_left)
+		n_left->parent = *node;
+	n_node->parent = parent;
+	(*node)->parent = n_node;
 	(*node)->left = n_left;
 	n_node->right = *node;
 	*node = n_node;
@@ -125,13 +126,17 @@ static inline struct rbt_node* __rbt_add(
 {
 	int cmp = ncmp(root, node);
 	if (cmp < 0){
-		if (!root->right)
+		if (!root->right){
+			node->parent = root;
 			return (root->right = node);
+		}
 		return __rbt_add(root->right, node, ncmp);
 	}
 	else if (cmp > 0){
-		if (!root->left)
+		if (!root->left){
+			node->parent = root;
 			return (root->left = node);
+		}
 		return __rbt_add(root->left, node, ncmp);
 	}
 	return NULL;
@@ -143,8 +148,8 @@ static inline void __rbt_relocate(
 		struct rbt_node* node,
 		rbt_cmp_node ncmp)
 {
-	struct rbt_node *parent = rbt_parent(*root, node, ncmp),
-			*gparent = rbt_parent(*root, parent, ncmp),
+	struct rbt_node *parent = rbt_parent(node),
+			*gparent = rbt_parent(parent),
 			*sibling = NULL;
 	int turn_right = 0;
 	if (!gparent || !parent)
@@ -203,10 +208,10 @@ static inline struct rbt_node* rbt_next(
 		return __tree_most_left(root);
 	if (from->right)
 		return __tree_most_left(from->right);
-	struct rbt_node* parent = rbt_parent(root, from, cmp);
+	struct rbt_node* parent = rbt_parent(from);
 	while (parent && parent->left != from){
 		from = parent;
-		parent = rbt_parent(root, parent, cmp);
+		parent = rbt_parent(parent);
 	}
 	return parent;
 }
@@ -222,12 +227,19 @@ static inline struct rbt_node* rbt_prev(
 		return __tree_most_right(root);
 	if (from->right)
 		return __tree_most_right(from->left);
-	struct rbt_node* parent = rbt_parent(root, from, cmp);
+	struct rbt_node* parent = rbt_parent(from);
 	while (parent && parent->right != from){
 		from = parent;
-		parent = rbt_parent(root, parent, cmp);
+		parent = rbt_parent(parent);
 	}
 	return parent;
+}
+
+static inline void rbt_remove(
+		struct rbt_node* root,
+		struct rbt_node* node,
+		rbt_cmp_node cmp)
+{
 }
 
 #endif /* _H_RB_TREE_H */

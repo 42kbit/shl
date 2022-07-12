@@ -8,6 +8,16 @@ current dependency:
 current priority:
 	RED-BLACK TREE. (after it's completion, bin_tree.h will
 		pass away... sadly)
+TESTS:
+Tested with 256*256*256 (16 mil) operations of insert.
+	BIN TREE:
+		RAND INSERT: 22 SEC
+		INORDERED INSERT: 2M30SEC THAN SEGFAULT
+		FIND: O(log2 n) < O(n) < O(n)
+	RED-BLACK TREE:
+		RAND INSERT: 25 SEC
+		INORDERED INSERT: 10 SEC
+		FIND: O(log2 n)
 
 For use just simply copy headers to your project!
 

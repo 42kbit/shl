@@ -57,14 +57,12 @@ static inline void print_tree(struct rbt_node* root){
 
 int main(void){
 	struct rbt_node* root = NULL;
-	unsigned int ins_vals[] = {8,3,1,6,4,7,10,14};
-	struct obj objs[arr_size(ins_vals)];
-
-	for(int i = 0; i < arr_size(ins_vals); i++){
+	unsigned int obj_vals[] = {3,1,6,4,7,10,14,13};
+	struct obj objs[arr_size(obj_vals)];
+	for (int i = 0; i < arr_size(obj_vals); i++){
+		objs[i].data = obj_vals[i];
 		rbt_init_node(&(objs[i].rbt_node));
-		objs[i].data = ins_vals[i];
-		rbt_insert(&root, &(objs[i].rbt_node), 
-				obj_cmp_node);
+		rbt_insert(&root, &(objs[i].rbt_node), obj_cmp_node);
 	}
 	print_tree(root);
 	return 0;
