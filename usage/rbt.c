@@ -36,13 +36,13 @@ static inline int obj_cmp_node(
  * 	node with VALUE 3
  * 	and	  COLOR BLACK
  *
- *          	6b
+ *          	  6b
  *             /     \
  *            3r      8r
  *           /  \    /  \
- *          1b   4b 7b   10b
- *                      \
- *                      14r
+ *          1b   4b 7b   12b
+ *                       / \
+ *                     10r  14r
  *                	
  *                	
  */
@@ -51,13 +51,24 @@ static inline void print_tree(struct rbt_node* root){
 	struct rbt_node* iter = NULL;
 	while (iter = rbt_next(root, iter, obj_cmp_node)){
 		struct obj* entry = get_entry(iter, struct obj, rbt_node);
-		printf("data: %d, clr: %d\n", entry->data, iter->color);
+		struct obj* parent = get_entry(iter->parent, 
+				struct obj, rbt_node);
+		struct obj* left = get_entry(iter->left, 
+				struct obj, rbt_node);
+		struct obj* right = get_entry(iter->right, 
+				struct obj, rbt_node);
+		printf("data: %d, clr: %d,"
+		"parent: %d, left: %d, right %d\n", 
+		entry->data, iter->color,
+		(iter->parent? parent->data : -1),
+		(iter->left? left->data : -1),
+		(iter->right? right->data : -1));
 	}
 }
 
 int main(void){
 	struct rbt_node* root = NULL;
-	unsigned int obj_vals[] = {3,1,6,4,7,10,14,13};
+	unsigned int obj_vals[] = {8,3,1,6,4,7,10,14,12};
 	struct obj objs[arr_size(obj_vals)];
 	for (int i = 0; i < arr_size(obj_vals); i++){
 		objs[i].data = obj_vals[i];

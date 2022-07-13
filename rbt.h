@@ -142,22 +142,50 @@ static inline struct rbt_node* __rbt_add(
 	return NULL;
 }
 
+static inline void __rbt_push_blackness(
+		struct rbt_node* from)
+{
+	/* no validation for now */
+	from->color = RBT_RED;
+	if (from->left)
+		from->left->color = RBT_BLACK;
+	if (from->right)
+		from->right->color = RBT_BLACK;
+}
+
 /* works like magic but i'm proud of it */
-static inline void __rbt_relocate(
+static inline void __rbt_added_relocate(
 		struct rbt_node** root,
 		struct rbt_node* node,
 		rbt_cmp_node ncmp)
 {
 	struct rbt_node *parent = rbt_parent(node),
 			*gparent = rbt_parent(parent),
-			*sibling = NULL;
+			*sibling = NULL,
+			*uncle = NULL;
 	int turn_right = 0;
 	if (!gparent || !parent)
 		return;
 	turn_right = (gparent->left == parent);
-	sibling = turn_right? gparent->right : gparent->left;
-	if (is_red(parent)){
-		if (!sibling || !is_red(sibling)){
+	uncle = turn_right? gparent->right : gparent->left;
+	sibling = parent->left == node? parent->right : parent->left;
+	if (is_red(parent) && is_red(node)){
+		/* maybe !is_red is not needed, but idk */
+		if (!uncle || !is_red(uncle)){
+			if (parent->right == node && turn_right){
+				__rbt_turn_left(*root, &parent, ncmp);
+				node = parent->left;
+			}
+			else if(parent->left == node && !turn_right){
+				__rbt_turn_right(*root, &parent, ncmp);
+				node = parent->right;
+			}
+		}
+		if (uncle && is_red(uncle)){
+			__rbt_push_blackness(gparent);
+			__rbt_added_relocate(root, gparent, ncmp);
+		}
+		else if (!uncle || !is_red(uncle)){
 			gparent->color = RBT_RED;
 			parent->color = RBT_BLACK;
 			node->color = RBT_RED;
@@ -170,13 +198,7 @@ static inline void __rbt_relocate(
 			if (set_after)
 				*root = gparent;
 		}
-		else if (is_red(sibling)){
-			gparent->color = RBT_RED;
-			parent->color = RBT_BLACK;
-			node->color = RBT_RED;
-			sibling->color = RBT_BLACK;
-			__rbt_relocate(root, gparent, ncmp);
-		}
+		
 	}
 	(*root)->color = RBT_BLACK;
 }
@@ -194,7 +216,7 @@ static inline void rbt_insert(
 		return;
 	}
 	struct rbt_node* added = __rbt_add(*root, node, ncmp);
-	__rbt_relocate(root, added, ncmp);
+	__rbt_added_relocate(root, added, ncmp);
 }
 
 static inline struct rbt_node* rbt_next(
@@ -235,11 +257,68 @@ static inline struct rbt_node* rbt_prev(
 	return parent;
 }
 
+static inline struct rbt_node* __rbt_get_replacer(
+		struct rbt_node* node)
+{
+	if (node->right){
+		return __tree_most_left(node->right);
+	}
+	else if (node->left){
+		return __tree_most_right(node->left);
+	}
+	return NULL;
+}
+
+/* replace instance in node's parent by new, 
+ * then sets node's parent ptr to NULL*/
+static inline void __rbt_repl_instance(
+		struct rbt_node* node,
+		struct rbt_node* new)
+{
+	struct rbt_node *parent = rbt_parent(node);
+	if (!parent)
+		return;
+	if (parent->left == node)
+		parent->left = new;
+	else if (parent->right == node)
+		parent->right = new;
+}
+
+static inline void __rbt_bin_remove(
+		struct rbt_node* root,
+		struct rbt_node** node)
+{
+	/* validation is on rbt_remove, this function is internal, so 
+	 * do NOT use it anywhere else ;) */
+	struct rbt_node
+		*node_parent = rbt_parent(*node),
+		*replacer = __rbt_get_replacer(*node);
+	if (replacer){
+		__rbt_repl_instance(replacer, NULL);
+		replacer->parent = node_parent;
+		if ((*node)->left){
+			replacer->left = (*node)->left;
+			replacer->left->parent = replacer;
+		}
+		if ((*node)->right){
+			replacer->right = (*node)->right;
+			replacer->right->parent = replacer;
+		}
+	}
+	__rbt_repl_instance(*node, replacer);
+	(*node)->left = (*node)->right = (*node)->parent = NULL;
+	*node = replacer;
+}
+
 static inline void rbt_remove(
 		struct rbt_node* root,
-		struct rbt_node* node,
-		rbt_cmp_node cmp)
+		struct rbt_node** node)
 {
+	if (!root || !node || !*node)
+		return;
+	int dnode_color = (*node)->color;
+	__rbt_bin_remove(root, node);
+	printf("%d\n", dnode_color);
 }
 
 #endif /* _H_RB_TREE_H */
