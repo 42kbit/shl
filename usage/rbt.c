@@ -11,6 +11,7 @@ struct obj {
 static inline int obj_cmp_key(struct rbt_node* node, const void* key){
 	struct obj *ent;
 	ent = get_entry(node, struct obj, rbt_node);
+
 	return ent->data - *(unsigned int*)key;
 }
 
@@ -41,8 +42,8 @@ static inline int obj_cmp_node(
  *            3r      8r
  *           /  \    /  \
  *          1b   4b 7b   12b
- *                       / \
- *                     10r  14r
+ *         /             / \
+ *        0r           10r  14r
  *                	
  *                	
  */
@@ -57,8 +58,7 @@ static inline void print_tree(struct rbt_node* root){
 				struct obj, rbt_node);
 		struct obj* right = get_entry(iter->right, 
 				struct obj, rbt_node);
-		printf("data: %d, clr: %d,"
-		"parent: %d, left: %d, right %d\n", 
+		printf("data: %d, clr: %d," "parent: %d, left: %d, right %d\n", 
 		entry->data, iter->color,
 		(iter->parent? parent->data : -1),
 		(iter->left? left->data : -1),
@@ -66,15 +66,41 @@ static inline void print_tree(struct rbt_node* root){
 	}
 }
 
+static inline void obj_remove_key(
+		struct rbt_node** root,
+		unsigned int key)
+{
+	struct rbt_node *torem = rbt_find(*root, &key, obj_cmp_key);
+	printf("%p\n", torem);
+	rbt_remove(root, &torem);
+}
+
 int main(void){
 	struct rbt_node* root = NULL;
-	unsigned int obj_vals[] = {8,3,1,6,4,7,10,14,12};
+	unsigned int obj_vals[] = {1,2,3,4,5,6,7,8,9,10,11,12};
 	struct obj objs[arr_size(obj_vals)];
 	for (int i = 0; i < arr_size(obj_vals); i++){
 		objs[i].data = obj_vals[i];
 		rbt_init_node(&(objs[i].rbt_node));
 		rbt_insert(&root, &(objs[i].rbt_node), obj_cmp_node);
 	}
+
+	obj_remove_key(&root, 2);
+	obj_remove_key(&root, 1);
+	obj_remove_key(&root, 12);
+	obj_remove_key(&root, 4);
+	obj_remove_key(&root, 7);
+	obj_remove_key(&root, 5);
+	obj_remove_key(&root, 8);
+	obj_remove_key(&root, 11);
+	obj_remove_key(&root, 3);
+	obj_remove_key(&root, 9);
+	obj_remove_key(&root, 10);
+	obj_remove_key(&root, 6);
+	/*
+	*/
+
 	print_tree(root);
+
 	return 0;
 }
