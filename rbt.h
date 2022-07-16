@@ -321,20 +321,34 @@ static inline void __rbt_bin_remove(
 	struct rbt_node
 		*node_parent = rbt_parent(*node),
 		*replacer = __rbt_get_replacer(*node);
+	if (replacer && replacer->left)
+		printf("%d\n", *(unsigned int*)((char*)(replacer)->left));
+
 	int set_after = 0;
 	if (((*node)->left == replacer || (*node)->right == replacer) && 
 			__rbt_get_child_cnt(*node) == 2){
 		set_after = 1;
 	}
 	*repl_parent = rbt_parent(replacer);
-	if (*repl_parent)
+
+	if (*repl_parent){
+		if ((replacer)->left){
+			(replacer->left->parent) = (*repl_parent);
+			(*repl_parent)->right = (replacer)->left;
+		}
+		else if ((replacer)->right){
+			(replacer->right->parent) = (*repl_parent);
+			(*repl_parent)->left = (replacer)->right;
+		}
 		*repl_sibling = __rbt_sibling(replacer);
+	}
 	else
 		*repl_sibling = NULL;
 	if (replacer){
 		*repl_ncnt = __rbt_get_child_cnt(replacer);
 		__rbt_repl_instance(replacer, NULL);
 		replacer->parent = node_parent;
+		
 		if ((*node)->left){
 			replacer->left = (*node)->left;
 			replacer->left->parent = replacer;
@@ -344,6 +358,7 @@ static inline void __rbt_bin_remove(
 			replacer->right->parent = replacer;
 		}
 	}
+	
 	__rbt_repl_instance(*node, replacer);
 	(*node)->left = (*node)->right = (*node)->parent = NULL;
 	if (set_after)
@@ -538,6 +553,13 @@ static inline void rbt_remove(
 	unsigned int repl_ncnt;
 
 	repl_was_left = !!((*node)->left);
+	if (!parent){
+		if (child_cnt == 0){
+			*root = NULL;
+			*node = NULL;
+			return;
+		}
+	}
 	__rbt_bin_remove(root, node, &repl_parent, &repl_sibling, &repl_ncnt);
 	if (*node){
 		repl_old_color = (*node)->color;
@@ -545,11 +567,6 @@ static inline void rbt_remove(
 	}
 	else
 		repl_old_color = RBT_BLACK;
-
-	if (!parent){
-		if (child_cnt == 0)
-			return;
-	}
 
 	if (child_cnt == 0){
 		/* repl_old_color here is 100% black */
@@ -569,8 +586,9 @@ static inline void rbt_remove(
 	}
 	else if (child_cnt == 2){
 		if (dnode_color == RBT_BLACK &&	repl_ncnt == 1){
-			if (repl_parent->left == repl_sibling)
+			if (repl_parent->left == repl_sibling){
 				repl_parent->right->color = RBT_BLACK;
+			}
 			else
 				repl_parent->left->color = RBT_BLACK;
 		}	

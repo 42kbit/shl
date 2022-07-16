@@ -77,7 +77,7 @@ static inline void obj_remove_key(
 
 int main(void){
 	struct rbt_node* root = NULL;
-	unsigned int obj_vals[] = {1,2,3,4,5,6,7,8,9,10,11,12};
+	unsigned int obj_vals[] = {12,11,10,9,8,7,6,5,4,3,2,1};
 	struct obj objs[arr_size(obj_vals)];
 	for (int i = 0; i < arr_size(obj_vals); i++){
 		objs[i].data = obj_vals[i];
@@ -86,18 +86,18 @@ int main(void){
 	}
 
 	obj_remove_key(&root, 2);
-	obj_remove_key(&root, 1);
-	obj_remove_key(&root, 12);
-	obj_remove_key(&root, 4);
-	obj_remove_key(&root, 7);
-	obj_remove_key(&root, 5);
 	obj_remove_key(&root, 8);
-	obj_remove_key(&root, 11);
+	obj_remove_key(&root, 5);
 	obj_remove_key(&root, 3);
-	obj_remove_key(&root, 9);
-	obj_remove_key(&root, 10);
-	obj_remove_key(&root, 6);
+	obj_remove_key(&root, 1);
+	obj_remove_key(&root, 11);
+	obj_remove_key(&root, 7);
+	obj_remove_key(&root, 12);
 	/*
+	obj_remove_key(&root, 10);
+	obj_remove_key(&root, 9);
+	obj_remove_key(&root, 4);
+	obj_remove_key(&root, 6);
 	*/
 
 	print_tree(root);
