@@ -71,11 +71,29 @@ static inline void obj_remove_key(
 		unsigned int key)
 {
 	struct rbt_node *torem = rbt_find(*root, &key, obj_cmp_key);
-	printf("%p\n", torem);
 	rbt_remove(root, &torem);
 }
 
 int main(void){
+	/* testing code */
+	while (1){
+	struct rbt_node* root = NULL;
+	unsigned int obj_vals[] = {12,11,10,9,8,7,6,5,4,3,2,1,52,6534,6273,1234,7555,433,2325,4815,8368,235,76248,415456,272353};
+	struct obj objs[arr_size(obj_vals)];
+	for (int i = 0; i < arr_size(obj_vals); i++){
+		objs[i].data = obj_vals[i];
+		rbt_init_node(&(objs[i].rbt_node));
+		rbt_insert(&root, &(objs[i].rbt_node), obj_cmp_node);
+	}
+
+	srand(time(NULL));
+	for (int i = 0; i < 99; i++){
+		int val = 1 + rand() % 12;
+		obj_remove_key(&root, val);
+	}
+	}
+
+	/*
 	struct rbt_node* root = NULL;
 	unsigned int obj_vals[] = {12,11,10,9,8,7,6,5,4,3,2,1};
 	struct obj objs[arr_size(obj_vals)];
@@ -84,23 +102,23 @@ int main(void){
 		rbt_init_node(&(objs[i].rbt_node));
 		rbt_insert(&root, &(objs[i].rbt_node), obj_cmp_node);
 	}
-
-	obj_remove_key(&root, 2);
+	
+	obj_remove_key(&root, 12);
 	obj_remove_key(&root, 8);
 	obj_remove_key(&root, 5);
-	obj_remove_key(&root, 3);
+	
 	obj_remove_key(&root, 1);
-	obj_remove_key(&root, 11);
-	obj_remove_key(&root, 7);
-	obj_remove_key(&root, 12);
-	/*
-	obj_remove_key(&root, 10);
-	obj_remove_key(&root, 9);
 	obj_remove_key(&root, 4);
+	obj_remove_key(&root, 3);
+	obj_remove_key(&root, 2);
+	obj_remove_key(&root, 9);
+	obj_remove_key(&root, 11);
 	obj_remove_key(&root, 6);
-	*/
+	obj_remove_key(&root, 10);
+	obj_remove_key(&root, 7);
 
 	print_tree(root);
+	*/
 
 	return 0;
 }

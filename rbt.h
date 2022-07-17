@@ -321,8 +321,6 @@ static inline void __rbt_bin_remove(
 	struct rbt_node
 		*node_parent = rbt_parent(*node),
 		*replacer = __rbt_get_replacer(*node);
-	if (replacer && replacer->left)
-		printf("%d\n", *(unsigned int*)((char*)(replacer)->left));
 
 	int set_after = 0;
 	if (((*node)->left == replacer || (*node)->right == replacer) && 
@@ -332,15 +330,23 @@ static inline void __rbt_bin_remove(
 	*repl_parent = rbt_parent(replacer);
 
 	if (*repl_parent){
+		*repl_sibling = __rbt_sibling(replacer);
 		if ((replacer)->left){
 			(replacer->left->parent) = (*repl_parent);
-			(*repl_parent)->right = (replacer)->left;
+			if ((*repl_parent)->right == replacer){
+				(*repl_parent)->right = (replacer)->left;
+			}
+			else
+				(*repl_parent)->left = (replacer)->left;
 		}
 		else if ((replacer)->right){
 			(replacer->right->parent) = (*repl_parent);
-			(*repl_parent)->left = (replacer)->right;
+			if ((*repl_parent)->right == replacer){
+				(*repl_parent)->right = (replacer)->right;
+			}
+			else
+				(*repl_parent)->left = (replacer)->right;
 		}
-		*repl_sibling = __rbt_sibling(replacer);
 	}
 	else
 		*repl_sibling = NULL;
@@ -380,6 +386,7 @@ recheck:
 		if (is_red((*sibling)->left) || is_red((*sibling)->right)){
 			/* rr */
 			if (!s_is_left && is_red((*sibling)->right)){
+				int old_clr = (*parent)->color;
 				int set_after = 0;
 				if (*parent == *root)
 					set_after = 1;
@@ -392,12 +399,20 @@ recheck:
 				else
 					(*parent)->color = RBT_RED;
 				*/
+				/*
+				(*parent)->color = RBT_BLACK;
+				if (is_black((*parent)->parent)){
+					(*parent)->color = RBT_RED;
+				}
+				*/
+				(*parent)->color = old_clr;
 				(*parent)->right->color = RBT_BLACK;
 				if ((*parent)->left)
 					(*parent)->left->color = RBT_BLACK;
 			}
 			/* ll */
 			else if (s_is_left && is_red((*sibling)->left)){
+				int old_clr = (*parent)->color;
 				int set_after = 0;
 				if (*parent == *root)
 					set_after = 1;
@@ -409,7 +424,14 @@ recheck:
 					(*parent)->color = RBT_BLACK;
 				else
 					(*parent)->color = RBT_RED;
+					*/
+				/*
+				(*parent)->color = RBT_BLACK;
+				if (is_black((*parent)->parent)){
+					(*parent)->color = RBT_RED;
+				}
 				*/
+				(*parent)->color = old_clr;
 				(*parent)->left->color = RBT_BLACK;
 				if ((*parent)->right)
 					(*parent)->right->color = RBT_BLACK;
@@ -423,15 +445,16 @@ recheck:
 				(*sibling)->color = RBT_BLACK;
 				__rbt_turn_left(parent);
 				*/
-				(*sibling)->left->color = RBT_BLACK;
-				(*sibling)->color = RBT_RED;
+				int tmp = (*sibling)->left->color;
+				(*sibling)->left->color = (*sibling)->color;
+				(*sibling)->color = tmp;
 				int set_after = 0;
 				if (*sibling == *root)
 					set_after = 1;
 				__rbt_turn_right(sibling);
 				if (set_after)
 					*root = *sibling;
-				goto recheck; /* will do ll */
+				goto recheck;
 
 			}
 			/* lr */
@@ -442,23 +465,21 @@ recheck:
 				(*sibling)->color = RBT_BLACK;
 				__rbt_turn_right(parent);
 				*/
-				(*sibling)->right->color = RBT_BLACK;
-				(*sibling)->color = RBT_RED;
+				int tmp = (*sibling)->right->color;
+				(*sibling)->right->color = (*sibling)->color;
+				(*sibling)->color = tmp;
 				int set_after = 0;
 				if (*sibling == *root)
 					set_after = 1;
 				__rbt_turn_left(sibling);
 				if (set_after)
 					*root = *sibling;
-				goto recheck; /* will do ll */
+				goto recheck;
 			}
 		}
 		else{
 			/* all child of sibling are black, so as sibling */
 			if (is_black(*parent)){
-				/* push blackness */
-
-				/* PARENT IS DOUBLE BLACK! */
 				struct rbt_node
 					*nparent = (*parent)->parent,
 					*nsibling = NULL;
@@ -466,19 +487,12 @@ recheck:
 				if(*sibling)
 					(*sibling)->color = RBT_RED;
 				if (!nparent){
-					/* is root */
 					return;
 				}
 				if (nparent->left == *parent)
 					nsibling = nparent->right;
 				else
 					nsibling = nparent->left;
-				/*
-				if (s_is_left)
-					(*parent)->left->color = RBT_RED;
-				else
-					(*parent)->right->color = RBT_RED;
-					*/
 				if ((*parent)->left && 
 						(*parent)->left->color == RBT_BLACK){
 					(*parent)->left->color = RBT_RED;
