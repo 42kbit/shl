@@ -90,7 +90,7 @@ int main(void){
 	srand(time(NULL));
 	printf("iter: %d\n", i);
 	for (int i = 0; i < arr_size(obj_vals)*2; i++){
-		int val = 1 + rand() % 12;
+		int val = 1 + rand() % arr_size(obj_vals);
 		obj_remove_key(&root, val);
 	}
 	}
