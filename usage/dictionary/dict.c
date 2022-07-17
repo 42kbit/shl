@@ -8,23 +8,24 @@
 
 #define DICT_NODE_DLEN 128
 struct dict_node{
-	char data[DICT_NODE_DLEN];
+	char key[DICT_NODE_DLEN];
+	int value;
 	struct rbt_node rbt_node;
 };
 
 static inline int dict_cmp_key(struct rbt_node* node0, 
-		void* node1)
+		const void* node1)
 {
 	struct dict_node* entry = get_entry(node0, struct dict_node, 
 			rbt_node);
-	return strncmp(entry->data, (const char*)node1, DICT_NODE_DLEN);
+	return strncmp(entry->key, (const char*)node1, DICT_NODE_DLEN);
 }
 
 static inline int dict_cmp_node(struct rbt_node* node0, 
 		struct rbt_node* node1)
 {
 	return dict_cmp_key(node0, get_entry(node1, struct dict_node,
-				rbt_node)->data);
+				rbt_node)->key);
 }
 
 static inline void dict_free(struct rbt_node* node){
@@ -35,24 +36,54 @@ static inline void dict_free(struct rbt_node* node){
 #define arr_cnt(x) \
 	sizeof(x) / sizeof(*x)
 
+static inline void dict_insert(
+		struct rbt_node** dict,
+		char* key,
+		int value)
+{
+	struct rbt_node* rbt_node = rbt_find(*dict, key,
+			dict_cmp_key);
+	if (rbt_node){
+		struct dict_node* dnode = get_entry(rbt_node,
+				struct dict_node, rbt_node);
+		dnode->value = value;
+		return;
+	}
+	struct dict_node* new_node = (struct dict_node*)malloc(
+			sizeof(struct dict_node));
+	strncpy(new_node->key, key, DICT_NODE_DLEN * sizeof(char));
+	new_node->value = value;
+	rbt_insert(dict, &(new_node->rbt_node), dict_cmp_node); 
+}
+static inline int dict_get(struct rbt_node* dict, char* key){
+	struct rbt_node* rbt_node = rbt_find(dict, key, dict_cmp_key);
+	if (!rbt_node)
+		return -1;
+	struct dict_node* dnode = get_entry(rbt_node, struct dict_node,
+			rbt_node);
+	return dnode->value;
+}
+static inline int dict_remove(struct rbt_node** dict, char* key){
+	struct rbt_node* rbt_node = rbt_find(*dict, key, dict_cmp_key);
+	if (!rbt_node)
+		return -1;
+	struct dict_node* dnode = get_entry(rbt_node, struct dict_node,
+			rbt_node);
+	rbt_remove(dict, &rbt_node);
+	free(dnode);
+}
+
 int main(void){
 	struct rbt_node* root = NULL;
-	char *strings[] = {"hello", "world", "random", 
-		"banana", "apple", "ca;lsdfj", "da;osdfkj", "zasfadfafs", "y", "z", "x", "xx"};
-	struct dict_node** dnodes = (struct dict_node**)malloc(
-			sizeof(struct dict_node*) * arr_cnt(strings));
-	for (int i = 0; i < arr_cnt(strings); i++){
-		dnodes[i] = (struct dict_node*)malloc(
-				sizeof(struct dict_node));
-		strncpy(dnodes[i]->data, strings[i], DICT_NODE_DLEN);
-		rbt_insert(&root, &(dnodes[i]->rbt_node), dict_cmp_node);
-	}
-	struct rbt_node* iter = NULL;
-	/* prints in alphabetical order ;) */
-	while (iter = rbt_next(root, iter, dict_cmp_node)){
-		struct dict_node* entry = get_entry(iter, struct dict_node,
-				rbt_node);
-		printf("%s\n", entry->data);
-	}
+	dict_insert(&root, "apple", 5);
+	dict_insert(&root, "banana", 12);
+	dict_insert(&root, "bruh", 999);
+	dict_insert(&root, "bruh", 52);
+	printf("%d\n", dict_get(root, "apple"));
+	printf("%d\n", dict_get(root, "banana"));
+	printf("%d\n", dict_get(root, "bruh"));
+	dict_remove(&root, "banana");
+	dict_remove(&root, "apple");
+	dict_remove(&root, "bruh");
 	return 0;
 }

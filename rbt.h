@@ -32,7 +32,7 @@ static inline struct rbt_node* __tree_most_##dir( 	\
 }						
 /* used as tree_most_left(root) or 
  * tree_most_right(root), and simply will find most [INSERT DIR HERE]
- * node*/
+ * node, (done just for fun) */
 __define_tree_most(left)
 __define_tree_most(right)
 

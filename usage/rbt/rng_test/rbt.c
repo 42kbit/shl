@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "../rbt.h"
+#include "../../../rbt.h"
 
 struct obj {
 	unsigned int data;
@@ -77,7 +77,7 @@ int main(void){
 	/* testing code */
 	for(int i = 0; i < 0x7fffffff; i++){
 	struct rbt_node* root = NULL;
-	unsigned int obj_vals[256*256];
+	unsigned int obj_vals[256];
 	for (int i = 0; i < arr_size(obj_vals); i++)
 		obj_vals[i] = i;
 	struct obj objs[arr_size(obj_vals)];
@@ -89,32 +89,9 @@ int main(void){
 
 	srand(time(NULL));
 	printf("iter: %d\n", i);
-	for (int i = 0; i < arr_size(obj_vals)*2; i++){
+	for (int i = 0; i < arr_size(obj_vals)*4; i++){
 		int val = 1 + rand() % arr_size(obj_vals);
 		obj_remove_key(&root, val);
 	}
 	}
-	/*
-
-	struct rbt_node* root = NULL;
-	unsigned int obj_vals[32];
-	for (int i = 0; i < arr_size(obj_vals); i++)
-		obj_vals[i] = i;
-	struct obj objs[arr_size(obj_vals)];
-	for (int i = 0; i < arr_size(obj_vals); i++){
-		objs[i].data = obj_vals[i];
-		rbt_init_node(&(objs[i].rbt_node));
-		rbt_insert(&root, &(objs[i].rbt_node), obj_cmp_node);
-	}
-	obj_remove_key(&root, 9);
-	obj_remove_key(&root, 2);
-	obj_remove_key(&root, 4);
-	obj_remove_key(&root, 10);
-	obj_remove_key(&root, 6);
-	obj_remove_key(&root, 7);
-	
-	print_tree(root);
-	*/
-
-	return 0;
 }
