@@ -77,7 +77,7 @@ int main(void){
 	/* testing code */
 	for(int i = 0; i < 0x7fffffff; i++){
 	struct rbt_node* root = NULL;
-	unsigned int obj_vals[2048];
+	unsigned int obj_vals[256*256];
 	for (int i = 0; i < arr_size(obj_vals); i++)
 		obj_vals[i] = i;
 	struct obj objs[arr_size(obj_vals)];
