@@ -393,18 +393,7 @@ recheck:
 				__rbt_turn_left(parent);
 				if (set_after)
 					*root = *parent;
-				/*
-				if (!(*parent)->parent || is_red((*parent)->parent))
-					(*parent)->color = RBT_BLACK;
-				else
-					(*parent)->color = RBT_RED;
-				*/
-				/*
-				(*parent)->color = RBT_BLACK;
-				if (is_black((*parent)->parent)){
-					(*parent)->color = RBT_RED;
-				}
-				*/
+
 				(*parent)->color = old_clr;
 				(*parent)->right->color = RBT_BLACK;
 				if ((*parent)->left)
@@ -419,18 +408,7 @@ recheck:
 				__rbt_turn_right(parent);
 				if (set_after)
 					*root = *parent;
-				/*
-				if (!(*parent)->parent || is_red((*parent)->parent))
-					(*parent)->color = RBT_BLACK;
-				else
-					(*parent)->color = RBT_RED;
-					*/
-				/*
-				(*parent)->color = RBT_BLACK;
-				if (is_black((*parent)->parent)){
-					(*parent)->color = RBT_RED;
-				}
-				*/
+			
 				(*parent)->color = old_clr;
 				(*parent)->left->color = RBT_BLACK;
 				if ((*parent)->right)
@@ -439,12 +417,6 @@ recheck:
 			}
 			/* rl */
 			else if (!s_is_left && is_red((*sibling)->left)){
-				/*
-				__rbt_turn_right(sibling);
-				(*sibling)->right->color = RBT_RED;
-				(*sibling)->color = RBT_BLACK;
-				__rbt_turn_left(parent);
-				*/
 				int tmp = (*sibling)->left->color;
 				(*sibling)->left->color = (*sibling)->color;
 				(*sibling)->color = tmp;
@@ -459,12 +431,6 @@ recheck:
 			}
 			/* lr */
 			else if (s_is_left && is_red((*sibling)->right)){
-				/*
-				__rbt_turn_left(sibling);
-				(*sibling)->left->color = RBT_RED;
-				(*sibling)->color = RBT_BLACK;
-				__rbt_turn_right(parent);
-				*/
 				int tmp = (*sibling)->right->color;
 				(*sibling)->right->color = (*sibling)->color;
 				(*sibling)->color = tmp;
@@ -493,14 +459,6 @@ recheck:
 					nsibling = nparent->right;
 				else
 					nsibling = nparent->left;
-				if ((*parent)->left && 
-						(*parent)->left->color == RBT_BLACK){
-					(*parent)->left->color = RBT_RED;
-				}
-				if ((*parent)->right &&
-						(*parent)->right->color == RBT_BLACK){
-					(*parent)->right->color = RBT_RED;
-				}
 				__rbt_fix_dblack(&nparent, &nsibling, root);
 			}
 			else{

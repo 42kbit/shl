@@ -26,7 +26,6 @@ static inline int obj_cmp_node(
 	sizeof(name) / sizeof(*name)
 
 /*
- * THIS TREE IS CREATED BELOW
  *
  * COLOR VALUE IS PLACED NEXT
  * TO NODE WHERE
@@ -76,9 +75,11 @@ static inline void obj_remove_key(
 
 int main(void){
 	/* testing code */
-	while (1){
+	for(int i = 0; i < 0x7fffffff; i++){
 	struct rbt_node* root = NULL;
-	unsigned int obj_vals[] = {12,11,10,9,8,7,6,5,4,3,2,1,52,6534,6273,1234,7555,433,2325,4815,8368,235,76248,415456,272353};
+	unsigned int obj_vals[2048];
+	for (int i = 0; i < arr_size(obj_vals); i++)
+		obj_vals[i] = i;
 	struct obj objs[arr_size(obj_vals)];
 	for (int i = 0; i < arr_size(obj_vals); i++){
 		objs[i].data = obj_vals[i];
@@ -87,36 +88,31 @@ int main(void){
 	}
 
 	srand(time(NULL));
-	for (int i = 0; i < 99; i++){
+	printf("iter: %d\n", i);
+	for (int i = 0; i < arr_size(obj_vals)*2; i++){
 		int val = 1 + rand() % 12;
 		obj_remove_key(&root, val);
 	}
 	}
-
 	/*
+
 	struct rbt_node* root = NULL;
-	unsigned int obj_vals[] = {12,11,10,9,8,7,6,5,4,3,2,1};
+	unsigned int obj_vals[32];
+	for (int i = 0; i < arr_size(obj_vals); i++)
+		obj_vals[i] = i;
 	struct obj objs[arr_size(obj_vals)];
 	for (int i = 0; i < arr_size(obj_vals); i++){
 		objs[i].data = obj_vals[i];
 		rbt_init_node(&(objs[i].rbt_node));
 		rbt_insert(&root, &(objs[i].rbt_node), obj_cmp_node);
 	}
-	
-	obj_remove_key(&root, 12);
-	obj_remove_key(&root, 8);
-	obj_remove_key(&root, 5);
-	
-	obj_remove_key(&root, 1);
-	obj_remove_key(&root, 4);
-	obj_remove_key(&root, 3);
-	obj_remove_key(&root, 2);
 	obj_remove_key(&root, 9);
-	obj_remove_key(&root, 11);
-	obj_remove_key(&root, 6);
+	obj_remove_key(&root, 2);
+	obj_remove_key(&root, 4);
 	obj_remove_key(&root, 10);
+	obj_remove_key(&root, 6);
 	obj_remove_key(&root, 7);
-
+	
 	print_tree(root);
 	*/
 
