@@ -136,7 +136,7 @@ static inline struct rbt_node* __rbt_add(
 		}
 		return __rbt_add(root->left, node, ncmp);
 	}
-	return NULL;
+	return root;
 }
 
 static inline void __rbt_push_blackness(
@@ -202,7 +202,7 @@ static inline void __rbt_added_relocate(
 
 /* add + validate to make binary search tree
  * red and black tree. */
-static inline void rbt_insert(
+static inline struct rbt_node* rbt_insert(
 		struct rbt_node** root,
 		struct rbt_node* node,
 		rbt_cmp_node ncmp)
@@ -211,10 +211,11 @@ static inline void rbt_insert(
 	if (!*root){
 		node->color = RBT_BLACK;
 		*root = node;
-		return;
+		return *root;
 	}
 	struct rbt_node* added = __rbt_add(*root, node, ncmp);
 	__rbt_added_relocate(root, added, ncmp);
+	return added;
 }
 
 static inline struct rbt_node* rbt_next(
