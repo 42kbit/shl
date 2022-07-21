@@ -207,6 +207,7 @@ static inline void rbt_insert(
 		struct rbt_node* node,
 		rbt_cmp_node ncmp)
 {
+	rbt_init_node(node);
 	if (!*root){
 		node->color = RBT_BLACK;
 		*root = node;
