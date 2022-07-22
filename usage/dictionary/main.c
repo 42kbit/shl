@@ -5,8 +5,15 @@
 #include <string.h>
 #include "dict.h"
 
-struct obj_dict{
+struct obj_data{
 	int value;
+	/*
+	 * other data
+	 */
+};
+
+struct obj_dict{
+	struct obj_data data;
 	/* dict_node contains key, with tree node (no hashmap, cuz example
 	 * for red-black tree implementation) */
 	struct dict_node dict_node;
@@ -14,7 +21,7 @@ struct obj_dict{
 
 void obj_dict_set_val(struct dict_node* node, void* value){
 	struct obj_dict *entry = get_entry(node, struct obj_dict, dict_node);
-	entry->value = *(int*)value;
+	entry->data.value = *(int*)value;
 }
 
 #define arr_size(x) \
@@ -40,7 +47,7 @@ int main(void){
 	if (found)
 		/* upcast struct dict_node* to struct obj_dict* */
 		printf("%d\n", get_entry(found, struct obj_dict, 
-					dict_node)->value);
+					dict_node)->data.value);
 	found = dict_get(root, "d"); /* d was deleted, will return NULL! */
 	if (!found){
 		printf("d was not found!\n");
@@ -48,7 +55,7 @@ int main(void){
 	found = dict_get(root, "hello"); /* hello index is 8 */
 	if (found){
 		printf("%d\n", get_entry(found, struct obj_dict, 
-					dict_node)->value);
+					dict_node)->data.value);
 	}
 	return 0;
 }
