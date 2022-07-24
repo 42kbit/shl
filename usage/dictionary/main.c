@@ -20,7 +20,8 @@ struct obj_dict{
 };
 
 void obj_dict_set_val(struct dict_node* node, void* value){
-	struct obj_dict *entry = get_entry(node, struct obj_dict, dict_node);
+	struct obj_dict *entry = shl_get_entry(node, struct obj_dict,
+			dict_node);
 	entry->data.value = *(int*)value;
 }
 
@@ -46,7 +47,7 @@ int main(void){
 	struct dict_node* found = dict_get(root, "a"); /* a is 0, ok! */
 	if (found)
 		/* upcast struct dict_node* to struct obj_dict* */
-		printf("%d\n", get_entry(found, struct obj_dict, 
+		printf("%d\n", shl_get_entry(found, struct obj_dict, 
 					dict_node)->data.value);
 	found = dict_get(root, "d"); /* d was deleted, will return NULL! */
 	if (!found){
@@ -54,7 +55,7 @@ int main(void){
 	}
 	found = dict_get(root, "hello"); /* hello index is 8 */
 	if (found){
-		printf("%d\n", get_entry(found, struct obj_dict, 
+		printf("%d\n", shl_get_entry(found, struct obj_dict, 
 					dict_node)->data.value);
 	}
 	return 0;

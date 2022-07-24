@@ -1,0 +1,25 @@
+SPEED:
+Tested with 256*256*256 (16 mil) operations of insert.
+	BIN TREE:
+		RAND INSERT: 22 SEC
+		INORDERED INSERT: 2M30SEC THAN SEGFAULT 
+			(STACKOVERFLOW due to insert depth)
+		FIND: log2 n <= O(n) <= n
+	RED-BLACK TREE:
+		RAND INSERT: 25 SEC
+		INORDERED INSERT: 10 SEC
+		FIND: O(n) = log2 n (or so)
+
+MEMORY:
+	NOTE:
+		POINTER SIZE IS ASSUMED 8 BYTES
+	BIN TREE:
+		2 POINTERS (left, right)
+		TOTAL: 16 BYTES 
+	RED-BLACK TREE:
+		3 POINTERS (left, right, parent) + COLOR
+		TOTAL: 25 BYTES
+	IN SCALE:
+		16777216 nodes (2^24)
+		BIN TREE: 256 MIB
+		RED-BLACK TREE: 400 MIB
