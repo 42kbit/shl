@@ -60,8 +60,8 @@ static void shl_rbt_remove_node(
 
 #ifndef SHL_RBT_NOABSTRACTIONS
 
-struct shl_tree_node;
 struct shl_tree;
+struct shl_tree_node;
 typedef struct shl_tree_node shl_tree_node_t;
 typedef struct shl_tree shl_tree_t;
 
@@ -80,11 +80,26 @@ typedef void (*shl_tree_destroy)(
 		shl_tree_node_t* val,
 		void* user_data);
 
+struct shl_tree_node{
+	void* key;
+	void* data;
+	shl_rbt_node_t rbt_node;
+};
+
+struct shl_tree{
+	shl_tree_node_t* root;
+	shl_tree_cmp key_cmp;
+	shl_tree_destroy key_destroy, 
+			 data_destroy;
+};
 
 static inline shl_tree_t* shl_tree_new_full(
 		shl_tree_cmp key_cmp,
 		shl_tree_destroy key_destroy,
 		shl_tree_destroy data_destroy);
+
+static inline shl_tree_t* shl_tree_new(
+		shl_tree_cmp key_cmp);
 
 static inline shl_tree_node_t* shl_tree_new_node_full(
 		void* key, void* data);
@@ -735,19 +750,6 @@ static inline void shl_rbt_remove_node(
 #define shl_allocate_type(type) ((type*)malloc(sizeof(type)))
 #define shl_allocate_types(type, n) ((type*)malloc(sizeof(type) * n))
 
-struct shl_tree_node{
-	void* key;
-	void* data;
-	shl_rbt_node_t rbt_node;
-};
-
-struct shl_tree{
-	shl_tree_node_t* root;
-	shl_tree_cmp key_cmp;
-	shl_tree_destroy key_destroy, 
-			 data_destroy;
-};
-
 static inline int shl_tree_node_cmp_full(
 		shl_rbt_node_t* n0, shl_rbt_node_t* n1, const void* data)
 {
@@ -782,6 +784,12 @@ static inline shl_tree_t* shl_tree_new_full(
 	newtree->key_destroy = key_destroy;
 	newtree->data_destroy = data_destroy;
 	return newtree;
+}
+
+static inline shl_tree_t* shl_tree_new(
+		shl_tree_cmp key_cmp)
+{
+	return shl_tree_new_full(key_cmp, NULL, NULL);
 }
 
 static inline shl_tree_node_t* shl_tree_new_node_full(
@@ -829,6 +837,7 @@ static inline shl_tree_node_t* shl_tree_insert(
 	}
 	else{
 		newnode->data = data;
+		return newnode;
 	}
 	if (!tree->root){
 		shl_rbt_insert_node_full(&root, &(newnode->rbt_node),
@@ -847,6 +856,8 @@ static inline void shl_tree_unlink(
 		shl_tree_t* tree,
 		shl_tree_node_t* node)
 {
+	if (!tree || !node)
+		return;
 	shl_rbt_node_t* root = &(tree->root->rbt_node);
 	shl_rbt_remove_node(&root, &(node->rbt_node));
 	if (root)
@@ -881,7 +892,7 @@ static inline void __shl_tree_foreach(
 		shl_tree_traverse_func trav_func,
 		void* user_data)
 {
-	if (!trav_func)
+	if (!tree || !trav_func || !order)
 		return;
 	shl_rbt_node_t *iter = NULL;
 	while (iter = order(&(tree->root->rbt_node), iter))
@@ -924,6 +935,8 @@ static inline void shl_tree_foreach_preorder(
 }
 
 static inline void shl_tree_remove_all_full(shl_tree_t* tree, void* user_data){
+	if (!tree)
+		return;
 	while (tree->root){
 		shl_tree_remove_full(tree, tree->root, user_data);
 	}
@@ -932,6 +945,7 @@ static inline void shl_tree_remove_all_full(shl_tree_t* tree, void* user_data){
 static inline void shl_tree_remove_all(shl_tree_t* tree){
 	shl_tree_remove_all_full(tree, NULL);
 }
+
 #endif /* SHL_RBT_NOABSTRACTIONS */
 
 #endif /* _H_SHL_RB_TREE_H */

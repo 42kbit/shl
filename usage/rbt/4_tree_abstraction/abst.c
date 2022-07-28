@@ -60,18 +60,18 @@ int main(void){
 			obj_destroy_key,
 			obj_destroy_value
 			);
-	obj_insert(obj_tree, "hell", 5);
-	obj_insert(obj_tree, "hell", 1234);
+	obj_insert(obj_tree, "hello", 5);
+	obj_insert(obj_tree, "hello", 1234);
 	obj_insert(obj_tree, "wow", 10);
-	obj_insert(obj_tree, "wow0", 1033);
-	obj_insert(obj_tree, "wow1", 1033);
-	obj_insert(obj_tree, "wow2", 1033);
-	obj_insert(obj_tree, "wow3", 1033);
-	obj_insert(obj_tree, "wow4", 1033);
-	obj_insert(obj_tree, "wow5", 1033);
-	obj_insert(obj_tree, "wow6", 1033);
+	obj_insert(obj_tree, "wowasdf", 1033);
+	obj_insert(obj_tree, "wowasdf1", 1033);
+	obj_insert(obj_tree, "wowasdf2", 1033);
+	obj_insert(obj_tree, "wowasdf3", 1033);
+	obj_insert(obj_tree, "wowasdf4", 1033);
+	obj_insert(obj_tree, "wowasdf5", 1033);
+	obj_insert(obj_tree, "wowasdf6", 1033);
 
-	shl_tree_foreach_inorder(obj_tree, print_node);
+	shl_tree_foreach_preorder(obj_tree, print_node);
 	shl_tree_remove_all(obj_tree);
 
 	return 0;
