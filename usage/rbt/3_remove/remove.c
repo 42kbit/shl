@@ -1,4 +1,6 @@
 #include <stdio.h>
+
+#define SHL_RBT_NOABSTRACTIONS
 #include "../../../shl_rbt.h"
 
 struct obj {
@@ -6,7 +8,11 @@ struct obj {
 	struct shl_rbt_node rbt_node;
 };
 
-static inline int obj_cmp_key(struct shl_rbt_node* node, const void* key){
+static inline int obj_cmp_key(
+		struct shl_rbt_node* node,
+		const void* key,
+		const void*)
+{
 	struct obj *ent;
 	ent = shl_get_entry(node, struct obj, rbt_node);
 	return ent->data - *(unsigned int*)key;
@@ -14,14 +20,18 @@ static inline int obj_cmp_key(struct shl_rbt_node* node, const void* key){
 
 static inline int obj_cmp_node(
 		struct shl_rbt_node* node0,
-		struct shl_rbt_node* node1)
+		struct shl_rbt_node* node1,
+		const void*)
 {
-	return obj_cmp_key(node0, shl_get_entry(node1, struct obj, rbt_node));
+	return obj_cmp_key(
+			node0,
+			shl_get_entry(node1, struct obj, rbt_node),
+			NULL);
 }
 
 static inline void obj_print_tree(struct shl_rbt_node* root){
 	struct shl_rbt_node* iter = NULL;
-	while (iter = shl_rbt_next_node(root, iter, obj_cmp_node)){
+	while (iter = shl_rbt_next_node(root, iter)){
 		printf("%u\n", 
 				shl_get_entry(iter, struct obj, rbt_node)->data);
 	}
@@ -60,7 +70,7 @@ int main(void){
 	unsigned int element = 3;
 	struct shl_rbt_node* found =
 		shl_rbt_find_node(root, &element, obj_cmp_key);
-	shl_rbt_remove_node(&root, &found);
+	shl_rbt_remove_node(&root, found);
 	obj_print_tree(root);
 	return 0;
 }

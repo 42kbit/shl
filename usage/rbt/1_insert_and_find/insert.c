@@ -1,4 +1,5 @@
 #include <stdio.h>
+
 #include "../../../shl_rbt.h"
 
 struct obj {
@@ -6,7 +7,9 @@ struct obj {
 	struct shl_rbt_node rbt_node;
 };
 
-int obj_cmp_node(struct shl_rbt_node* node0, struct shl_rbt_node* node1){
+int obj_cmp_node(struct shl_rbt_node* node0,
+			struct shl_rbt_node* node1,
+			const void*){
 	struct obj *obj0, *obj1;
 	obj0 = shl_get_entry(node0, struct obj, rbt_node);
 	obj1 = shl_get_entry(node1, struct obj, rbt_node);

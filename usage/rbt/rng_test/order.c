@@ -2,7 +2,6 @@
 #include <time.h>
 #include <stdlib.h>
 
-#define SHL_RBT_NOABSTRACTIONS
 #include "../../../shl_rbt.h"
 
 struct obj {
@@ -12,7 +11,11 @@ struct obj {
 };
 
 /* similar to obj_cmp_node, but takes key */
-static inline int obj_cmp_key(struct shl_rbt_node* node, const void* key, const void*){
+static inline int obj_cmp_key(
+		struct shl_rbt_node* node,
+		const void* key,
+		const void*)
+{
 	struct obj *ent;
 	ent = shl_get_entry(node, struct obj, rbt_node);
 
@@ -24,7 +27,8 @@ static inline int obj_cmp_node(
 		struct shl_rbt_node* node1,
 		const void*)
 {
-	return obj_cmp_key(node0, shl_get_entry(node1, struct obj, rbt_node), NULL);
+	return obj_cmp_key(node0, shl_get_entry(node1, struct obj, rbt_node),
+			NULL);
 }
 
 #define arr_size(name) \
@@ -80,23 +84,15 @@ static inline void obj_remove_key(
 
 int main(void){
 	/* testing code */
-	for(int i = 0; i < 0x7fffffff; i++){
 	struct shl_rbt_node* root = NULL;
-	unsigned int obj_vals[1024];
+	unsigned int obj_vals[21];
 	for (int i = 0; i < arr_size(obj_vals); i++)
 		obj_vals[i] = i;
 	struct obj objs[arr_size(obj_vals)];
 	for (int i = 0; i < arr_size(obj_vals); i++){
 		objs[i].data = obj_vals[i];
 		shl_rbt_init_node(&(objs[i].rbt_node));
-		shl_rbt_insert_node_full(&root, &(objs[i].rbt_node), NULL, obj_cmp_node);
+		shl_rbt_insert_node(&root, &(objs[i].rbt_node), obj_cmp_node);
 	}
-
-	srand(time(NULL));
-	printf("iter: %d\n", i);
-	for (int i = 0; i < arr_size(obj_vals)*4; i++){
-		int val = 1 + rand() % arr_size(obj_vals);
-		obj_remove_key(&root, val);
-	}
-	}
+	print_tree(root);
 }

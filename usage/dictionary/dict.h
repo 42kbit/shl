@@ -1,6 +1,7 @@
 #ifndef _H_DICT_H
 #define _H_DICT_H
 
+#define SHL_RBT_NOABSTRACTIONS
 #include "../../shl_rbt.h"
 
 #define DICT_NODE_DLEN 128
@@ -9,20 +10,23 @@ struct dict_node{
 	struct shl_rbt_node rbt_node;
 };
 
-static inline int dict_cmp_key(struct shl_rbt_node* node0, 
-		const void* node1)
+static inline int dict_cmp_key(
+		struct shl_rbt_node* node0, 
+		const void* node1,
+		const void*)
 {
 	struct dict_node* entry = shl_get_entry(node0, struct dict_node, 
 			rbt_node);
 	return strncmp(entry->key, (const char*)node1, DICT_NODE_DLEN);
 }
 
-static inline int dict_cmp_node(struct shl_rbt_node* node0, 
-		struct shl_rbt_node* node1)
+static inline int dict_cmp_node(
+		struct shl_rbt_node* node0, 
+		struct shl_rbt_node* node1,
+		const void*)
 {
-
 	return dict_cmp_key(node0, shl_get_entry(node1, struct dict_node,
-				rbt_node)->key);
+				rbt_node)->key, NULL);
 }
 
 static inline void dict_free(struct shl_rbt_node* node){
@@ -78,7 +82,7 @@ static inline int dict_remove(
 	struct shl_rbt_node
 		*rbt_root = &((*root)->rbt_node),
 		*rbt_torem = &(torem->rbt_node);
-	shl_rbt_remove_node(&rbt_root, &rbt_torem);
+	shl_rbt_remove_node(&rbt_root, rbt_torem);
 	*root = shl_get_entry(rbt_root, struct dict_node, rbt_node);
 	return 0;
 }
