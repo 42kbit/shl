@@ -314,14 +314,12 @@ static inline void __shl_rbt_added_relocate(
 {
 	struct shl_rbt_node *parent = shl_rbt_parent(node),
 			*gparent = shl_rbt_parent(parent),
-			*sibling = NULL,
 			*uncle = NULL;
 	int turn_right = 0;
 	if (!gparent || !parent)
 		return;
 	turn_right = (gparent->left == parent);
 	uncle = turn_right? gparent->right : gparent->left;
-	sibling = parent->left == node? parent->right : parent->left;
 	if (is_red(parent) && is_red(node)){
 		/* maybe !is_red is not needed, but idk */
 		if (!uncle || !is_red(uncle)){
@@ -545,7 +543,7 @@ static inline void __shl_rbt_fix_dblack(
 		struct shl_rbt_node** sibling,
 		struct shl_rbt_node** root)
 {
-recheck:
+recheck: ;
 	int s_is_left = ((*parent)->left == *sibling);
 	if (is_black(*sibling)){
 		/* if one of child of s is red */
@@ -625,8 +623,9 @@ recheck:
 					nsibling = nparent->right;
 				else
 					nsibling = nparent->left;
-				parent = &nparent;
-				sibling = &nsibling;
+
+				*parent = nparent;
+				*sibling = nsibling;
 				goto recheck;
 			}
 			else{
@@ -651,8 +650,8 @@ recheck:
 			new_sibling = old_parent->right;
 			(*parent)->left->color = RBT_RED;
 			(*parent)->color = RBT_BLACK;
-			parent = &old_parent;
-			sibling = &new_sibling;
+			*parent = old_parent;
+			*sibling = new_sibling;
 			goto recheck;
 		}
 		else if (s_is_left){
@@ -667,8 +666,8 @@ recheck:
 			new_sibling = old_parent->left;
 			(*parent)->right->color = RBT_RED;
 			(*parent)->color = RBT_BLACK;
-			parent = &old_parent;
-			sibling = &new_sibling;
+			*parent = old_parent;
+			*sibling = new_sibling;
 			goto recheck;
 
 		}
@@ -684,19 +683,15 @@ static inline void shl_rbt_remove_node(
 	int dnode_color = (node)->color,
 	    child_cnt = __shl_rbt_get_child_cnt(node),
 	    /* color of node that was deleted. */
-	    repl_old_color,
-	    repl_was_left;
+	    repl_old_color;
 
 	/* those are default values of parent, sibling, in case that
 	 * *node after bst insert might be NULL */
 	struct shl_rbt_node *parent = (node)->parent,
 			*sibling = __shl_rbt_sibling(node),
-			*old_node = (node),
 			*repl_parent = NULL,
 			*repl_sibling = NULL;
 	unsigned int repl_ncnt;
-
-	repl_was_left = !!((node)->left);
 	if (!parent){
 		if (child_cnt == 0){
 			*root = NULL;

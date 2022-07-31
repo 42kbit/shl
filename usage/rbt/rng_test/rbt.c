@@ -12,7 +12,10 @@ struct obj {
 };
 
 /* similar to obj_cmp_node, but takes key */
-static inline int obj_cmp_key(struct shl_rbt_node* node, const void* key, const void*){
+static inline int obj_cmp_key(
+		struct shl_rbt_node* node,
+		const void* key,
+		const void* _){
 	struct obj *ent;
 	ent = shl_get_entry(node, struct obj, rbt_node);
 
@@ -22,7 +25,7 @@ static inline int obj_cmp_key(struct shl_rbt_node* node, const void* key, const 
 static inline int obj_cmp_node(
 		struct shl_rbt_node* node0,
 		struct shl_rbt_node* node1,
-		const void*)
+		const void* _)
 {
 	return obj_cmp_key(node0, shl_get_entry(node1, struct obj, rbt_node), NULL);
 }
@@ -54,7 +57,7 @@ static inline int obj_cmp_node(
 
 static inline void print_tree(struct shl_rbt_node* root){
 	struct shl_rbt_node* iter = NULL;
-	while (iter = shl_rbt_next_node(root, iter)){
+	while ( (iter = shl_rbt_next_node(root, iter)) ){
 		struct obj* entry = shl_get_entry(iter, struct obj, rbt_node);
 		struct obj* parent = shl_get_entry(iter->parent, 
 				struct obj, rbt_node);
@@ -89,7 +92,8 @@ int main(void){
 	for (int i = 0; i < arr_size(obj_vals); i++){
 		objs[i].data = obj_vals[i];
 		shl_rbt_init_node(&(objs[i].rbt_node));
-		shl_rbt_insert_node_full(&root, &(objs[i].rbt_node), NULL, obj_cmp_node);
+		shl_rbt_insert_node_full(&root, &(objs[i].rbt_node),
+				 obj_cmp_node, NULL);
 	}
 
 	srand(time(NULL));
