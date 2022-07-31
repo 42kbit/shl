@@ -625,7 +625,9 @@ recheck:
 					nsibling = nparent->right;
 				else
 					nsibling = nparent->left;
-				__shl_rbt_fix_dblack(&nparent, &nsibling, root);
+				parent = &nparent;
+				sibling = &nsibling;
+				goto recheck;
 			}
 			else{
 				if (s_is_left)
@@ -649,8 +651,9 @@ recheck:
 			new_sibling = old_parent->right;
 			(*parent)->left->color = RBT_RED;
 			(*parent)->color = RBT_BLACK;
-			__shl_rbt_fix_dblack(&old_parent, &new_sibling, root);
-			
+			parent = &old_parent;
+			sibling = &new_sibling;
+			goto recheck;
 		}
 		else if (s_is_left){
 			int set_after = 0;
@@ -664,7 +667,10 @@ recheck:
 			new_sibling = old_parent->left;
 			(*parent)->right->color = RBT_RED;
 			(*parent)->color = RBT_BLACK;
-			__shl_rbt_fix_dblack(&old_parent, &new_sibling, root);
+			parent = &old_parent;
+			sibling = &new_sibling;
+			goto recheck;
+
 		}
 	}
 }
