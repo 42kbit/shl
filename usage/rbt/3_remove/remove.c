@@ -1,6 +1,5 @@
 #include <stdio.h>
 
-#define SHL_RBT_NOABSTRACTIONS
 #include "../../../shl_rbt.h"
 
 struct obj {

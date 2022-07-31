@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define SHL_RBT_ABSTRACTIONS
 #include "../../../shl_rbt.h"
 
 struct obj {
@@ -11,7 +12,7 @@ struct obj {
 #define arr_size(name) \
 	sizeof(name) / sizeof(*name)
 
-#define MAX_KEY_LEN 256
+#define MAX_KEY_LEN 255
 int obj_cmp_key(const void* k0, const void* k1){
 	return strncmp(k0, k1, MAX_KEY_LEN);
 }
@@ -34,11 +35,13 @@ void obj_destroy_key(
 	free(val);
 }
 
-static inline shl_tree_node_t* obj_insert(shl_tree_t* tree,
-		char* key, int value)
+static inline shl_tree_node_t* obj_insert(
+		shl_tree_t* tree,
+		char* key,
+		int value)
 {
-	char *newkey = malloc(sizeof(char) * strlen(key));
-	strcpy(newkey, key);
+	char *newkey = malloc(sizeof(char) * MAX_KEY_LEN);
+	strncpy(newkey, key, MAX_KEY_LEN-1);
 	int *newdata = malloc(sizeof(int));
 	*newdata = value;
 	return shl_tree_insert(tree, newkey, newdata);

@@ -211,5 +211,8 @@ static inline struct shl_list_node* shl_list_find(
 	return shl_list_find_full(list, data, NULL, predicate);
 }
 
+#ifdef SHL_LIST_ABSTRACTIONS
+
+#endif /* SHL_LIST_ABSTRACTIONS */
 
 #endif /*_H_SHL_LIST_H */ 

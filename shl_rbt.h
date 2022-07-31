@@ -1,7 +1,7 @@
 #ifndef _H_SHL_RB_TREE_H
 #define _H_SHL_RB_TREE_H
 
-/* define SHL_RBT_NOABSTRACTIONS to not include abstractions */
+/* define SHL_RBT_ABSTRACTIONS to include abstractions */
 
 /* MINIMIZED API START */
 
@@ -58,7 +58,7 @@ static void shl_rbt_remove_node(
 /* MINIMIZED API END */
 /* ABSTRACTED API START */
 
-#ifndef SHL_RBT_NOABSTRACTIONS
+#ifdef SHL_RBT_ABSTRACTIONS
 
 struct shl_tree;
 struct shl_tree_node;
@@ -149,7 +149,7 @@ static inline void shl_tree_remove_all_full(
 
 static inline void shl_tree_remove_all(shl_tree_t* tree);
 
-#endif /* SHL_RBT_NOABSTRACTIONS */
+#endif /* SHL_RBT_ABSTRACTIONS */
 /* ABSTRACTED API END */
 
 #ifndef NULL
@@ -741,8 +741,8 @@ static inline void shl_rbt_remove_node(
 		(*root)->color = RBT_BLACK;
 }
 
-/* SECTION BELOW MAKES ABSTRACTIONS OVER NODES, RECOMENDED FOR USER USE. */
-#ifndef SHL_RBT_NOABSTRACTIONS
+/* SECTION BELOW MAKES ABSTRACTIONS OVER NODES */
+#ifdef SHL_RBT_ABSTRACTIONS
 
 #ifndef SHL_RBT_OWNMALLOC
 #include <stdlib.h>
@@ -947,6 +947,6 @@ static inline void shl_tree_remove_all(shl_tree_t* tree){
 	shl_tree_remove_all_full(tree, NULL);
 }
 
-#endif /* SHL_RBT_NOABSTRACTIONS */
+#endif /* SHL_RBT_ABSTRACTIONS */
 
 #endif /* _H_SHL_RB_TREE_H */

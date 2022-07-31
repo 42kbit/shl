@@ -1,7 +1,6 @@
 #ifndef _H_DICT_H
 #define _H_DICT_H
 
-#define SHL_RBT_NOABSTRACTIONS
 #include "../../../shl_rbt.h"
 
 #define DICT_NODE_DLEN 128
