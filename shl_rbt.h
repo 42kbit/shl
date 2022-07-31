@@ -896,7 +896,7 @@ static inline void __shl_tree_foreach(
 	if (!tree || !trav_func || !order)
 		return;
 	shl_rbt_node_t *iter = NULL;
-	while (iter = order(&(tree->root->rbt_node), iter))
+	while ( (iter = order(&(tree->root->rbt_node), iter) ))
 	{
 		trav_func(
 			tree,

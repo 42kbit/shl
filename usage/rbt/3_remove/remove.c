@@ -33,7 +33,7 @@ static inline void obj_print_tree(struct shl_rbt_node* root){
 	struct shl_rbt_node* iter = NULL;
 	while (iter = shl_rbt_next_node(root, iter)){
 		printf("%u\n", 
-				shl_get_entry(iter, struct obj, rbt_node)->data);
+			shl_get_entry(iter, struct obj, rbt_node)->data);
 	}
 }
 

@@ -9,7 +9,7 @@ struct obj {
 
 int obj_cmp_node(struct shl_rbt_node* node0,
 			struct shl_rbt_node* node1,
-			const void*){
+			const void* _){
 	struct obj *obj0, *obj1;
 	obj0 = shl_get_entry(node0, struct obj, rbt_node);
 	obj1 = shl_get_entry(node1, struct obj, rbt_node);

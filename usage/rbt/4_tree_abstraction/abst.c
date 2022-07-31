@@ -50,7 +50,7 @@ static inline int print_node(
 		void* user_data)
 {
 	printf("%d, %s, %d\n", node->rbt_node.color,
-			node->key, *(int*)node->data);
+			(char*)node->key, *(int*)node->data);
 	return 0;
 }
 

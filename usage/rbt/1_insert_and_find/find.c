@@ -10,7 +10,7 @@ struct obj {
 
 /* similar to obj_cmp_node, but takes key */
 static inline int obj_cmp_key(struct shl_rbt_node* node, const void* key,
-		const void*){
+		const void* _){
 	struct obj *ent;
 	ent = shl_get_entry(node, struct obj, rbt_node);
 	return ent->data - *(unsigned int*)key;
@@ -19,7 +19,7 @@ static inline int obj_cmp_key(struct shl_rbt_node* node, const void* key,
 static inline int obj_cmp_node(
 		struct shl_rbt_node* node0,
 		struct shl_rbt_node* node1,
-		const void*)
+		const void* _)
 {
 	return obj_cmp_key(node0, shl_get_entry(node1, struct obj, rbt_node),
 			NULL);
@@ -47,7 +47,7 @@ int main(void){
 	struct shl_rbt_node* node = shl_rbt_find_node_full(root, &element, obj_cmp_key, NULL);
 	if (node)
 		printf("node located in addr:%p, data:%u\n", 
-				shl_get_entry(node, struct obj, rbt_node),
+				(void*)shl_get_entry(node, struct obj, rbt_node),
 				shl_get_entry(node, struct obj, rbt_node)->data);
 	else
 		printf("node is not present\n");
