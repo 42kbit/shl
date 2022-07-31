@@ -32,7 +32,68 @@ typedef struct shl_list_node shl_list_node_t;
 #define shl_list_for_each_entry_prev_auto(list, iter, ent_name, member) \
 	shl_list_for_each_entry_prev(list, iter, ent_name, typeof(*ent_name), member)
 
-static inline void shl_list_init_node(struct shl_list_node* obj){
+static inline void shl_list_init_head(
+		struct shl_list_node* obj);
+
+static inline void shl_list_link(
+		struct shl_list_node* prev,
+		struct shl_list_node* next);
+
+static inline void shl_list_insert(
+		struct shl_list_node* new,
+		struct shl_list_node* prev,
+		struct shl_list_node* next);
+
+static inline void shl_list_add(
+		struct shl_list_node* to,
+		struct shl_list_node* new);
+
+static inline void shl_list_add_tail(
+		struct shl_list_node* to,
+		struct shl_list_node* new);
+
+static inline void shl_list_remove(
+		struct shl_list_node* node);
+
+static inline void shl_list_move(
+		struct shl_list_node* list,
+		struct shl_list_node* node);
+
+static inline void shl_list_move_tail(
+		struct shl_list_node* list,
+		struct shl_list_node* node);
+
+static inline struct shl_list_node* shl_list_next(
+		struct shl_list_node* node);
+
+static inline int shl_list_is_last(
+		struct shl_list_node* list,
+		struct shl_list_node* node);
+
+static inline int shl_list_is_head(
+		struct shl_list_node* list,
+		struct shl_list_node* node);
+
+static inline struct shl_list_node* shl_list_find_full(
+		struct shl_list_node* list,
+		const void* data,
+		const void* user_data,
+		int (*predicate)(
+			struct shl_list_node* node,
+			const void* data,
+			const void* user_data) );
+
+static inline struct shl_list_node* shl_list_find(
+		struct shl_list_node* list,
+		const void* data,
+		int (*predicate)(
+			struct shl_list_node* node,
+			const void* data,
+			const void* user_data) );
+
+static inline void shl_list_init_head(
+		struct shl_list_node* obj)
+{
 	obj->next = obj;
 	obj->prev = obj;
 }
@@ -73,7 +134,8 @@ static inline void shl_list_add_tail(
 	shl_list_insert(new, to->prev, to);
 }
 
-static inline void shl_list_remove(struct shl_list_node* node){
+static inline void shl_list_remove(
+		struct shl_list_node* node){
 	shl_list_link(node->prev, node->next);
 }
 
@@ -85,6 +147,15 @@ static inline void shl_list_move(
 	shl_list_add(list, node);
 }
 
+static inline struct shl_list_node* shl_list_find(
+		struct shl_list_node* list,
+		const void* data,
+		int (*predicate)(
+			struct shl_list_node* node,
+			const void* data,
+			const void* user_data) );
+
+
 static inline void shl_list_move_tail(
 		struct shl_list_node* list,
 		struct shl_list_node* node)
@@ -93,7 +164,8 @@ static inline void shl_list_move_tail(
 	shl_list_add_tail(list, node);
 }
 
-static inline struct shl_list_node* shl_list_next(struct shl_list_node* node){
+static inline struct shl_list_node* shl_list_next(
+		struct shl_list_node* node){
 	return node->next;
 }
 
@@ -111,17 +183,33 @@ static inline int shl_list_is_head(
 	return list == node;
 }
 
-static inline struct shl_list_node* shl_list_find(
+static inline struct shl_list_node* shl_list_find_full(
 		struct shl_list_node* list,
-		void* data,
-		int (*predicate)(struct shl_list_node* node, void* data))
+		const void* data,
+		const void* user_data,
+		int (*predicate)(
+			struct shl_list_node* node,
+			const void* data,
+			const void* user_data) )
 {
 	struct shl_list_node* iter;
 	shl_list_for_each(list, iter){
-		if (predicate(iter, data))
+		if (predicate(iter, data, user_data))
 			return iter;
 	}
 	return 0;
 }
+
+static inline struct shl_list_node* shl_list_find(
+		struct shl_list_node* list,
+		const void* data,
+		int (*predicate)(
+			struct shl_list_node* node,
+			const void* data,
+			const void* user_data) )
+{
+	return shl_list_find_full(list, data, NULL, predicate);
+}
+
 
 #endif /*_H_LIST_H */ 

@@ -6,7 +6,11 @@ struct data {
 	struct shl_list_node list;
 };
 
-int sdata_by_data (struct shl_list_node* node, void* data){
+int sdata_by_data (
+		struct shl_list_node* node,
+		const void* data,
+		const void* _)
+{
 	return shl_get_entry(node, struct data, list)->data == *((int*)data);
 }
 
@@ -27,7 +31,7 @@ int main(void){
 			 *pdata4 = &(data4.list),
 			 *list = &head;
 
-	shl_list_init_node(list);
+	shl_list_init_head(list);
 	shl_list_add(list, pdata1);
 	shl_list_add(list, pdata2);
 	shl_list_add(list, pdata3);
