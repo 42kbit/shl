@@ -2,7 +2,7 @@
 #define _H_DICT_H
 
 #define SHL_RBT_NOABSTRACTIONS
-#include "../../shl_rbt.h"
+#include "../../../shl_rbt.h"
 
 #define DICT_NODE_DLEN 128
 struct dict_node{
@@ -13,7 +13,7 @@ struct dict_node{
 static inline int dict_cmp_key(
 		struct shl_rbt_node* node0, 
 		const void* node1,
-		const void*)
+		const void* _)
 {
 	struct dict_node* entry = shl_get_entry(node0, struct dict_node, 
 			rbt_node);
@@ -23,13 +23,14 @@ static inline int dict_cmp_key(
 static inline int dict_cmp_node(
 		struct shl_rbt_node* node0, 
 		struct shl_rbt_node* node1,
-		const void*)
+		const void* _)
 {
 	return dict_cmp_key(node0, shl_get_entry(node1, struct dict_node,
 				rbt_node)->key, NULL);
 }
 
-static inline void dict_free(struct shl_rbt_node* node){
+static inline void dict_free(
+		struct shl_rbt_node* node){
 	struct dict_node* entry = shl_get_entry(node, struct dict_node,
 			rbt_node);
 	free(entry);

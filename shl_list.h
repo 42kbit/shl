@@ -1,5 +1,5 @@
-#ifndef _H_LIST_H
-#define _H_LIST_H
+#ifndef _H_SHL_LIST_H
+#define _H_SHL_LIST_H
 
 struct shl_list_node{
 	struct shl_list_node *prev, *next;
@@ -212,4 +212,4 @@ static inline struct shl_list_node* shl_list_find(
 }
 
 
-#endif /*_H_LIST_H */ 
+#endif /*_H_SHL_LIST_H */ 
