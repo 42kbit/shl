@@ -41,6 +41,7 @@ static struct shl_rbt_node* shl_rbt_insert_node_full(
 		struct shl_rbt_node** root,
 		struct shl_rbt_node* node,
 		shl_rbt_cmp_node_full ncmpfull,
+		int* flags,
 		void* user_data);
 
 static struct shl_rbt_node* shl_rbt_next_node(
@@ -101,8 +102,13 @@ static inline shl_tree_t* shl_tree_new_full(
 static inline shl_tree_t* shl_tree_new(
 		shl_tree_cmp key_cmp);
 
-static inline shl_tree_node_t* shl_tree_new_node_full(
+static inline shl_tree_node_t* shl_tree_new_node(
 		void* key, void* data);
+
+static inline void shl_tree_deallocate_node_full(
+		shl_tree_t* tree,
+		shl_tree_node_t* node,
+		void* user_data);
 
 static inline shl_tree_node_t* shl_tree_find(
 		shl_tree_t* tree,
@@ -164,6 +170,9 @@ static inline void shl_tree_remove_all(shl_tree_t* tree);
 
 #define is_red(node) ((node) && ((node)->color == RBT_RED))
 #define is_black(node) (!(node) || ((node)->color == RBT_BLACK))
+
+/* __shl_rbt_add */
+#define SHL_RBT_FOUND 1
 
 #define __define_tree_most(dir) 			\
 static inline struct shl_rbt_node* __tree_most_##dir( 	\
@@ -271,6 +280,7 @@ static inline struct shl_rbt_node* __shl_rbt_add(
 		struct shl_rbt_node* root,
 		struct shl_rbt_node* node,
 		shl_rbt_cmp_node_full ncmpfull,
+		int* flags,
 		void* user_data)
 {
 	int cmp;
@@ -280,19 +290,25 @@ static inline struct shl_rbt_node* __shl_rbt_add(
 	if (cmp < 0){
 		if (!root->right){
 			node->parent = root;
+			if (flags)
+				*flags &= (~SHL_RBT_FOUND);
 			return (root->right = node);
 		}
-		return __shl_rbt_add(root->right, node, ncmpfull,
+		return __shl_rbt_add(root->right, node, ncmpfull, flags,
 				user_data);
 	}
 	else if (cmp > 0){
 		if (!root->left){
 			node->parent = root;
+			if (flags)
+				*flags &= (~SHL_RBT_FOUND);
 			return (root->left = node);
 		}
-		return __shl_rbt_add(root->left, node, ncmpfull,
+		return __shl_rbt_add(root->left, node, ncmpfull, flags,
 				user_data);
 	}
+	if (flags)
+		*flags |= SHL_RBT_FOUND;
 	return root;
 }
 
@@ -360,6 +376,7 @@ static inline struct shl_rbt_node* shl_rbt_insert_node_full(
 		struct shl_rbt_node** root,
 		struct shl_rbt_node* node,
 		shl_rbt_cmp_node_full ncmpfull,
+		int* flags,
 		void* user_data)
 {
 	shl_rbt_init_node(node);
@@ -369,7 +386,7 @@ static inline struct shl_rbt_node* shl_rbt_insert_node_full(
 		return *root;
 	}
 	struct shl_rbt_node* added = __shl_rbt_add(*root, node, 
-			ncmpfull, user_data);
+			ncmpfull, flags, user_data);
 	__shl_rbt_added_relocate(root, added);
 	return added;
 }
@@ -379,7 +396,7 @@ static inline struct shl_rbt_node* shl_rbt_insert_node(
 		struct shl_rbt_node* node,
 		shl_rbt_cmp_node_full ncmpfull)
 {
-	return shl_rbt_insert_node_full(root, node, ncmpfull, NULL);
+	return shl_rbt_insert_node_full(root, node, ncmpfull, NULL, NULL);
 }
 
 static inline struct shl_rbt_node* shl_rbt_next_node(
@@ -793,7 +810,7 @@ static inline shl_tree_t* shl_tree_new(
 	return shl_tree_new_full(key_cmp, NULL, NULL);
 }
 
-static inline shl_tree_node_t* shl_tree_new_node_full(
+static inline shl_tree_node_t* shl_tree_new_node(
 		void* key, void* data)
 {
 	shl_tree_node_t* newnode;
@@ -828,28 +845,32 @@ static inline shl_tree_node_t* shl_tree_insert(
 {
 	if (!tree || !key || !data)
 		return NULL;
-	shl_rbt_node_t* root = NULL;
+	shl_rbt_node_t *root = NULL,
+		*found = NULL;
+	int flags = 0;
 
-	shl_tree_node_t* newnode = shl_tree_find(tree, key);
-	if (!newnode){
-		newnode = shl_tree_new_node_full(key, data);
-		if (!newnode)
-			return NULL;
-	}
-	else{
-		newnode->data = data;
-		return newnode;
-	}
+	shl_tree_node_t* newnode = shl_tree_new_node(key, data);
 	if (!tree->root){
 		shl_rbt_insert_node_full(&root, &(newnode->rbt_node),
-				shl_tree_node_cmp_full, tree);
+				shl_tree_node_cmp_full, NULL, tree);
 		tree->root = newnode;
 		return newnode;
 	}
 	root = &(tree->root->rbt_node);
-	shl_rbt_insert_node_full(&root,
-			&(newnode->rbt_node), shl_tree_node_cmp_full, tree);
+	found = shl_rbt_insert_node_full(&root, &(newnode->rbt_node),
+			shl_tree_node_cmp_full, &flags, tree);
 	tree->root = shl_get_entry(root, shl_tree_node_t, rbt_node);
+	if (flags & SHL_RBT_FOUND){
+		if (tree->key_destroy)
+			tree->key_destroy(tree, newnode, NULL);
+		free(newnode);
+		shl_tree_node_t* found_entry = shl_get_entry(found,
+			shl_tree_node_t, rbt_node);
+		if (tree->data_destroy)
+			tree->data_destroy(tree, found_entry, NULL);
+		found_entry->data = data;
+		return found_entry;
+	}
 	return newnode;
 }
 
@@ -867,17 +888,25 @@ static inline void shl_tree_unlink(
 		tree->root = NULL;
 }
 
+static inline void shl_tree_deallocate_node_full(
+		shl_tree_t* tree,
+		shl_tree_node_t* node,
+		void* user_data)
+{
+	if (tree->key_destroy)
+		tree->key_destroy(tree, node, user_data);
+	if (tree->data_destroy)
+		tree->data_destroy(tree, node, user_data);
+	free(node);
+}
+
 static inline void shl_tree_remove_full(
 		shl_tree_t* tree,
 		shl_tree_node_t* node,
 		void* user_data)
 {
 	shl_tree_unlink(tree, node);
-	if (tree->key_destroy)
-		tree->key_destroy(tree, node->key, user_data);
-	if (tree->data_destroy)
-		tree->data_destroy(tree, node->data, user_data);
-	free(node);
+	shl_tree_deallocate_node_full(tree, node, user_data);
 }
 
 static inline void shl_tree_remove(

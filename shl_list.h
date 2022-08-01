@@ -213,6 +213,13 @@ static inline struct shl_list_node* shl_list_find(
 
 #ifdef SHL_LIST_ABSTRACTIONS
 
+#ifndef SHL_LIST_OWNMALLOC
+#include <stdlib.h>
+#endif /* SHL_LIST_OWNMALLOC */
+
+#define shl_allocate_type(type) ((type*)malloc(sizeof(type)))
+#define shl_allocate_types(type, n) ((type*)malloc(sizeof(type) * n))
+
 #endif /* SHL_LIST_ABSTRACTIONS */
 
 #endif /*_H_SHL_LIST_H */ 

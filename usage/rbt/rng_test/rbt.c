@@ -91,8 +91,8 @@ int main(void){
 	for (int i = 0; i < arr_size(obj_vals); i++){
 		objs[i].data = obj_vals[i];
 		shl_rbt_init_node(&(objs[i].rbt_node));
-		shl_rbt_insert_node_full(&root, &(objs[i].rbt_node),
-				 obj_cmp_node, NULL);
+		shl_rbt_insert_node(&root, &(objs[i].rbt_node),
+				 obj_cmp_node);
 	}
 
 	srand(time(NULL));

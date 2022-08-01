@@ -22,8 +22,8 @@ void obj_destroy_value(
 		shl_tree_node_t* val,
 		void* user_data)
 {
-	printf("destroying value\n");
-	free(val);
+	printf("destroying value: %d\n", *(int*)val->data);
+	free(val->data);
 }
 
 void obj_destroy_key(
@@ -31,8 +31,8 @@ void obj_destroy_key(
 		shl_tree_node_t* val,
 		void* user_data)
 {
-	printf("destroying key\n");
-	free(val);
+	printf("destroying key: %s\n", (const char*)val->key);
+	free(val->key);
 }
 
 static inline shl_tree_node_t* obj_insert(
@@ -63,9 +63,9 @@ int main(void){
 			obj_destroy_key,
 			obj_destroy_value
 			);
+	obj_insert(obj_tree, "wow", 10);
 	obj_insert(obj_tree, "hello", 5);
 	obj_insert(obj_tree, "hello", 1234);
-	obj_insert(obj_tree, "wow", 10);
 	obj_insert(obj_tree, "wowasdf", 1033);
 	obj_insert(obj_tree, "wowasdf1", 1033);
 	obj_insert(obj_tree, "wowasdf2", 1033);
