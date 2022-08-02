@@ -1,8 +1,8 @@
 # Simple Header Library Collection
 ...or shl for namespaces
 
-Meta of the project is to create a simple yet efficent to use 
-one header data structures, with minimized header dependency.
+Meta of the project is to create a simple and efficient to use 
+single header data structures, with minimized header dependency.
 
 For use just simply copy header to your project!
 
