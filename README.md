@@ -16,5 +16,5 @@ God bless open source!
 file | version | description
 ---------- | ------ | ----------------------------------- |
 **[shl_list.h](shl_list.h)** | 0.01 | idea from linux kernel, list implementation.
-**[shl_rbt.h](shl_rbt.h)** | 0.01 | red-black tree implementation ( with or without abstraction )
+**[shl_rbt.h](shl_rbt.h)** | 0.01 | red-black tree implementation
 **[shl_arr.h](shl_arr.h)** | 0.01 | array functions ( candidate for deletion )
