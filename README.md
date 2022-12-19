@@ -13,6 +13,8 @@ Idea from list.h file from linux kernel,
 and stb project!
 God bless open source!
 
+Type 'make' to compile all tests. (they go to '.out' directory)
+
 file | version | description
 ---------- | ------ | ----------------------------------- |
 **[shl_list.h](shl_list.h)** | 0.01 | idea from linux kernel, list implementation.
