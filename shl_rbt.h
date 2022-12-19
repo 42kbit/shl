@@ -7,9 +7,9 @@ struct shl_rbt_node{
 };
 typedef struct shl_rbt_node shl_rbt_node_t;
 
-typedef int(*shl_rbt_cmp_key)(struct shl_rbt_node* node,
+typedef int(*shl_rbt_cmp_key_t)(struct shl_rbt_node* node,
 		const void* key, const void* user_data);
-typedef int(*shl_rbt_cmp_node_full)(struct shl_rbt_node*,
+typedef int(*shl_rbt_cmp_node_t)(struct shl_rbt_node*,
 		struct shl_rbt_node*, const void* user_data);
 
 static void shl_rbt_init_node (struct shl_rbt_node* node);
@@ -17,13 +17,13 @@ static void shl_rbt_init_node (struct shl_rbt_node* node);
 static struct shl_rbt_node* shl_rbt_find_node_full(
 		struct shl_rbt_node* root,
 		const void* key,
-		shl_rbt_cmp_key kcmp,
+		shl_rbt_cmp_key_t kcmp,
 		const void* user_data);
 
 static struct shl_rbt_node* shl_rbt_find_node(
 		struct shl_rbt_node* root,
 		const void* key,
-		shl_rbt_cmp_key kcmp);
+		shl_rbt_cmp_key_t kcmp);
 
 static struct shl_rbt_node* shl_rbt_parent(
 		struct shl_rbt_node* child);
@@ -31,12 +31,12 @@ static struct shl_rbt_node* shl_rbt_parent(
 static struct shl_rbt_node* shl_rbt_insert_node(
 		struct shl_rbt_node** root,
 		struct shl_rbt_node* node,
-		shl_rbt_cmp_node_full ncmpfull);
+		shl_rbt_cmp_node_t ncmpfull);
 
 static struct shl_rbt_node* shl_rbt_insert_node_full(
 		struct shl_rbt_node** root,
 		struct shl_rbt_node* node,
-		shl_rbt_cmp_node_full ncmpfull,
+		shl_rbt_cmp_node_t ncmpfull,
 		int* flags,
 		void* user_data);
 
@@ -93,7 +93,7 @@ static inline void shl_rbt_init_node(
 static inline struct shl_rbt_node* shl_rbt_find_node(
 		struct shl_rbt_node* root,
 		const void* key,
-		shl_rbt_cmp_key kcmp)
+		shl_rbt_cmp_key_t kcmp)
 {
 	return shl_rbt_find_node_full(root, key, kcmp, NULL);
 }
@@ -101,7 +101,7 @@ static inline struct shl_rbt_node* shl_rbt_find_node(
 static inline struct shl_rbt_node* shl_rbt_find_node_full(
 		struct shl_rbt_node* root,
 		const void* key,
-		shl_rbt_cmp_key kcmp,
+		shl_rbt_cmp_key_t kcmp,
 		const void* user_data)
 {
 	if (!root)
@@ -173,7 +173,7 @@ static inline void __shl_rbt_turn_right(
 static inline struct shl_rbt_node* __shl_rbt_add(
 		struct shl_rbt_node* root,
 		struct shl_rbt_node* node,
-		shl_rbt_cmp_node_full ncmpfull,
+		shl_rbt_cmp_node_t ncmpfull,
 		int* flags,
 		void* user_data)
 {
@@ -269,7 +269,7 @@ static inline void __shl_rbt_added_relocate(
 static inline struct shl_rbt_node* shl_rbt_insert_node_full(
 		struct shl_rbt_node** root,
 		struct shl_rbt_node* node,
-		shl_rbt_cmp_node_full ncmpfull,
+		shl_rbt_cmp_node_t ncmpfull,
 		int* flags,
 		void* user_data)
 {
@@ -288,7 +288,7 @@ static inline struct shl_rbt_node* shl_rbt_insert_node_full(
 static inline struct shl_rbt_node* shl_rbt_insert_node(
 		struct shl_rbt_node** root,
 		struct shl_rbt_node* node,
-		shl_rbt_cmp_node_full ncmpfull)
+		shl_rbt_cmp_node_t ncmpfull)
 {
 	return shl_rbt_insert_node_full(root, node, ncmpfull, NULL, NULL);
 }
