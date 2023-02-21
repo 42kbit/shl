@@ -38,11 +38,17 @@ int main(void){
 			 *list = &head;
 
 	shl_list_init_head(list);
-	shl_list_add(list, pdata1);
-	shl_list_add(list, pdata2);
-	shl_list_add(list, pdata3);
-	shl_list_add(list, pdata4);
-	shl_list_move(list, pdata3);
+	shl_list_insert(list, pdata1);
+	shl_list_insert(list, pdata2);
+	shl_list_insert(list, pdata3);
+	shl_list_insert(list, pdata4);
+    /*
+     * Uncomment following line to witness linux-list double insertion bug.
+     * However, note that we may not initialize nodes.
+	shl_list_insert(list, pdata4);
+    */
+	
+	/*
 	int val = 22;
 	shl_list_remove(shl_list_find(list, (void*)&val, sdata_by_data, NULL));
 	
@@ -52,7 +58,6 @@ int main(void){
 		printf("%d\n", ent->data);
 	}
 
-	/*
 	shl_list_for_each_entry_prev_auto(list, cur, ent, list){
 		printf("%d\n", ent->data);
 	}
