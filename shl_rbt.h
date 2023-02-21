@@ -14,26 +14,16 @@ typedef int(*shl_rbt_cmp_node_t)(struct shl_rbt_node*,
 
 static void shl_rbt_init_node (struct shl_rbt_node* node);
 
-static struct shl_rbt_node* shl_rbt_find_node_full(
+static struct shl_rbt_node* shl_rbt_find_node(
 		struct shl_rbt_node* root,
 		const void* key,
 		shl_rbt_cmp_key_t kcmp,
 		const void* user_data);
 
-static struct shl_rbt_node* shl_rbt_find_node(
-		struct shl_rbt_node* root,
-		const void* key,
-		shl_rbt_cmp_key_t kcmp);
-
 static struct shl_rbt_node* shl_rbt_parent(
 		struct shl_rbt_node* child);
 
 static struct shl_rbt_node* shl_rbt_insert_node(
-		struct shl_rbt_node** root,
-		struct shl_rbt_node* node,
-		shl_rbt_cmp_node_t ncmpfull);
-
-static struct shl_rbt_node* shl_rbt_insert_node_full(
 		struct shl_rbt_node** root,
 		struct shl_rbt_node* node,
 		shl_rbt_cmp_node_t ncmpfull,
@@ -93,14 +83,6 @@ static inline void shl_rbt_init_node(
 static inline struct shl_rbt_node* shl_rbt_find_node(
 		struct shl_rbt_node* root,
 		const void* key,
-		shl_rbt_cmp_key_t kcmp)
-{
-	return shl_rbt_find_node_full(root, key, kcmp, NULL);
-}
-
-static inline struct shl_rbt_node* shl_rbt_find_node_full(
-		struct shl_rbt_node* root,
-		const void* key,
 		shl_rbt_cmp_key_t kcmp,
 		const void* user_data)
 {
@@ -110,9 +92,9 @@ static inline struct shl_rbt_node* shl_rbt_find_node_full(
 	if (res == 0)
 		return root;
 	else if (res > 0)
-		return shl_rbt_find_node_full(root->left, key,
+		return shl_rbt_find_node(root->left, key,
 				kcmp, user_data);
-	return shl_rbt_find_node_full(root->right, key,
+	return shl_rbt_find_node(root->right, key,
 			kcmp, user_data);
 }
 
@@ -266,7 +248,7 @@ static inline void __shl_rbt_added_relocate(
 
 /* add + validate to make binary search tree
  * red and black tree. */
-static inline struct shl_rbt_node* shl_rbt_insert_node_full(
+static inline struct shl_rbt_node* shl_rbt_insert_node(
 		struct shl_rbt_node** root,
 		struct shl_rbt_node* node,
 		shl_rbt_cmp_node_t ncmpfull,
@@ -283,14 +265,6 @@ static inline struct shl_rbt_node* shl_rbt_insert_node_full(
 			ncmpfull, flags, user_data);
 	__shl_rbt_added_relocate(root, added);
 	return added;
-}
-
-static inline struct shl_rbt_node* shl_rbt_insert_node(
-		struct shl_rbt_node** root,
-		struct shl_rbt_node* node,
-		shl_rbt_cmp_node_t ncmpfull)
-{
-	return shl_rbt_insert_node_full(root, node, ncmpfull, NULL, NULL);
 }
 
 static inline struct shl_rbt_node* shl_rbt_next_node(

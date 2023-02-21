@@ -78,7 +78,7 @@ static inline void obj_remove_key(
 		struct shl_rbt_node** root,
 		unsigned int key)
 {
-	struct shl_rbt_node *torem = shl_rbt_find_node(*root, &key, obj_cmp_key);
+	struct shl_rbt_node *torem = shl_rbt_find_node(*root, &key, obj_cmp_key, NULL);
 	shl_rbt_remove_node(root, torem);
 }
 
@@ -92,7 +92,7 @@ int main(void){
 	for (int i = 0; i < arr_size(obj_vals); i++){
 		objs[i].data = obj_vals[i];
 		shl_rbt_init_node(&(objs[i].rbt_node));
-		shl_rbt_insert_node(&root, &(objs[i].rbt_node), obj_cmp_node);
+		shl_rbt_insert_node(&root, &(objs[i].rbt_node), obj_cmp_node, NULL, NULL);
 	}
 	print_tree(root);
 }

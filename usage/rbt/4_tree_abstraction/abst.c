@@ -99,7 +99,7 @@ static inline shl_tree_node_t* shl_tree_find(
 {
 	if (!tree || !key || !(tree->root))
 		return NULL;
-	shl_rbt_node_t* found = shl_rbt_find_node_full(
+	shl_rbt_node_t* found = shl_rbt_find_node(
 			&(tree->root->rbt_node),
 			key,
 			shl_tree_key_cmp_full,
@@ -122,13 +122,13 @@ static inline shl_tree_node_t* shl_tree_insert(
 
 	shl_tree_node_t* newnode = shl_tree_new_node(key, data);
 	if (!tree->root){
-		shl_rbt_insert_node_full(&root, &(newnode->rbt_node),
+		shl_rbt_insert_node(&root, &(newnode->rbt_node),
 				shl_tree_node_cmp_full, NULL, tree);
 		tree->root = newnode;
 		return newnode;
 	}
 	root = &(tree->root->rbt_node);
-	found = shl_rbt_insert_node_full(&root, &(newnode->rbt_node),
+	found = shl_rbt_insert_node(&root, &(newnode->rbt_node),
 			shl_tree_node_cmp_full, &flags, tree);
 	tree->root = shl_get_entry(root, shl_tree_node_t, rbt_node);
 	if (flags & SHL_RBT_FOUND){
@@ -273,7 +273,7 @@ static inline int dict_traverse_print(
 		shl_tree_node_t* node,
 		void* user_data)
 {
-	printf("%d\n", *(int*)node->data);
+	return printf("%d\n", *(int*)node->data);
 }
 
 #define NKEYS 4

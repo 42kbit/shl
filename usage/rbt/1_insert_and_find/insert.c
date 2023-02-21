@@ -26,8 +26,8 @@ int main(void){
 	struct shl_rbt_node* obj0_node = &(obj0.rbt_node);
 	struct shl_rbt_node* obj1_node = &(obj1.rbt_node);
 
-	shl_rbt_insert_node(&root, obj0_node, obj_cmp_node);
-	shl_rbt_insert_node(&root, obj1_node, obj_cmp_node);
+	shl_rbt_insert_node(&root, obj0_node, obj_cmp_node, NULL, NULL);
+	shl_rbt_insert_node(&root, obj1_node, obj_cmp_node, NULL, NULL);
 	printf("%u is obj data!\n", 
 			shl_get_entry(root, struct obj, rbt_node)->data);
 	printf("%u is obj data!\n", 

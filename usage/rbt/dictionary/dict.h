@@ -46,14 +46,14 @@ static inline void dict_insert(
 {
 	struct shl_rbt_node *root = NULL;
 	if (!*dict_root){
-		shl_rbt_insert_node(&root, &(node->rbt_node), dict_cmp_node);
+		shl_rbt_insert_node(&root, &(node->rbt_node), dict_cmp_node, NULL, NULL);
 		*dict_root = node;
 		if (ins_func)
 			ins_func(node, value);
 		return;
 	}
 	root = &((*dict_root)->rbt_node);
-	shl_rbt_insert_node(&root, &(node->rbt_node), dict_cmp_node);
+	shl_rbt_insert_node(&root, &(node->rbt_node), dict_cmp_node, NULL, NULL);
 	*dict_root = shl_get_entry(root, struct dict_node, rbt_node);
 	if (ins_func)
 		ins_func(node, value);
@@ -66,7 +66,7 @@ static inline struct dict_node* dict_get(
 	if (!root)
 		return NULL;
 	struct shl_rbt_node* found = shl_rbt_find_node(&(root->rbt_node), key,
-			dict_cmp_key);
+			dict_cmp_key, NULL);
 	if (!found)
 		return NULL;
 	return shl_get_entry(found, struct dict_node, rbt_node);

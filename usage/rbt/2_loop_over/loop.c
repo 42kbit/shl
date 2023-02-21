@@ -64,12 +64,12 @@ int main(void){
 	for(int i = 0; i < arr_size(ins_vals); i++){
 		objs[i].data = ins_vals[i];
 		shl_rbt_insert_node(&root, &(objs[i].rbt_node), 
-				obj_cmp_node);
+				obj_cmp_node, NULL, NULL);
 	}
 	
 	unsigned int element = 6;
 	struct shl_rbt_node* node =
-		shl_rbt_find_node(root, &element, obj_cmp_key);
+		shl_rbt_find_node(root, &element, obj_cmp_key, NULL);
 	if (node)
 		printf("node located in addr:%p, data:%u\n", 
 			(void*)shl_get_entry(node, struct obj, rbt_node),

@@ -30,7 +30,7 @@ static inline int obj_cmp_node(
 
 static inline void obj_print_tree(struct shl_rbt_node* root){
 	struct shl_rbt_node* iter = NULL;
-	while (iter = shl_rbt_next_node(root, iter)){
+	while ((iter = shl_rbt_next_node(root, iter))){
 		printf("%u\n", 
 			shl_get_entry(iter, struct obj, rbt_node)->data);
 	}
@@ -63,12 +63,12 @@ int main(void){
 	for(int i = 0; i < arr_size(ins_vals); i++){
 		objs[i].data = ins_vals[i];
 		shl_rbt_insert_node(&root, &(objs[i].rbt_node), 
-				obj_cmp_node);
+				obj_cmp_node, NULL, NULL);
 	}
 	
 	unsigned int element = 3;
 	struct shl_rbt_node* found =
-		shl_rbt_find_node(root, &element, obj_cmp_key);
+		shl_rbt_find_node(root, &element, obj_cmp_key, NULL);
 	shl_rbt_remove_node(&root, found);
 	obj_print_tree(root);
 	return 0;
