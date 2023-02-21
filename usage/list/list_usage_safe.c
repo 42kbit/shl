@@ -56,21 +56,29 @@ int main(void){
 		printf("Node Inserted again!\n");
 	}
 	
-	/*
+	/* SEEK AND DESTROY the element by data */
 	int val = 22;
 	shl_list_remove(shl_list_find(list, (void*)&val, sdata_by_data, NULL));
 	
+	/* 
+	 * One way to traverse the tree. Unsafe if you are planning to free().
+	 * With intentions to free() better use shl_list_traverse.
+	*/
 	struct shl_list_node* cur;
 	struct data* ent;
 	shl_list_for_each_entry_prev(list, cur, ent, struct data, list){
 		printf("%d\n", ent->data);
 	}
 
+	/* Same but more clean*/
 	shl_list_for_each_entry_prev_auto(list, cur, ent, list){
 		printf("%d\n", ent->data);
 	}
-	*/
 	
+	/* 
+	 * Another way of traversing the tree, using callback function.
+	 * Safe way to free() list node in callback.
+	*/
 	if (shl_list_traverse(list, trav_func, NULL) != 0)
 		printf("List traverse error\n");
 }
