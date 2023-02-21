@@ -9,7 +9,7 @@ struct data {
 int sdata_by_data (
 		struct shl_list_node* node,
 		const void* data,
-		const void* _)
+		void* _)
 {
 	return shl_get_entry(node, struct data, list)->data == *((int*)data);
 }
@@ -44,7 +44,7 @@ int main(void){
 	shl_list_add(list, pdata4);
 	shl_list_move(list, pdata3);
 	int val = 22;
-	shl_list_remove(shl_list_find(list, (void*)&val, sdata_by_data));
+	shl_list_remove(shl_list_find(list, (void*)&val, sdata_by_data, NULL));
 	
 	struct shl_list_node* cur;
 	struct data* ent;

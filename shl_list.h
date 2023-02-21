@@ -74,22 +74,15 @@ static inline int shl_list_is_head(
 		struct shl_list_node* list,
 		struct shl_list_node* node);
 
-static inline struct shl_list_node* shl_list_find_full(
-		struct shl_list_node* list,
-		const void* data,
-		const void* user_data,
-		int (*predicate)(
-			struct shl_list_node* node,
-			const void* data,
-			const void* user_data) );
-
 static inline struct shl_list_node* shl_list_find(
 		struct shl_list_node* list,
 		const void* data,
 		int (*predicate)(
 			struct shl_list_node* node,
 			const void* data,
-			const void* user_data) );
+			void* user_data
+		),
+		void* user_data);
 
 static inline void shl_list_init_head(
 		struct shl_list_node* obj)
@@ -147,15 +140,6 @@ static inline void shl_list_move(
 	shl_list_add(list, node);
 }
 
-static inline struct shl_list_node* shl_list_find(
-		struct shl_list_node* list,
-		const void* data,
-		int (*predicate)(
-			struct shl_list_node* node,
-			const void* data,
-			const void* user_data) );
-
-
 static inline void shl_list_move_tail(
 		struct shl_list_node* list,
 		struct shl_list_node* node)
@@ -183,14 +167,15 @@ static inline int shl_list_is_head(
 	return list == node;
 }
 
-static inline struct shl_list_node* shl_list_find_full(
+static inline struct shl_list_node* shl_list_find(
 		struct shl_list_node* list,
 		const void* data,
-		const void* user_data,
 		int (*predicate)(
 			struct shl_list_node* node,
 			const void* data,
-			const void* user_data) )
+			void* user_data
+		),
+		void* user_data)
 {
 	struct shl_list_node* iter;
 	shl_list_for_each(list, iter){
@@ -198,17 +183,6 @@ static inline struct shl_list_node* shl_list_find_full(
 			return iter;
 	}
 	return 0;
-}
-
-static inline struct shl_list_node* shl_list_find(
-		struct shl_list_node* list,
-		const void* data,
-		int (*predicate)(
-			struct shl_list_node* node,
-			const void* data,
-			const void* user_data) )
-{
-	return shl_list_find_full(list, data, NULL, predicate);
 }
 
 static inline int shl_list_traverse (
