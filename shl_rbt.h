@@ -46,8 +46,11 @@ static void shl_rbt_remove_node(
 #define NULL ((void*)0)
 #endif
 
-#define shl_get_entry(ptr, type, name) \
+#define container_of(ptr, type, name) \
 	((type*)((char*)ptr-(unsigned long)&(((type*)0)->name)))
+
+#define shl_get_entry(ptr, type, name) \
+	container_of(ptr, type, name)
 
 #define RBT_BLACK 0
 #define RBT_RED 1

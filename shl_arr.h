@@ -1,5 +1,5 @@
-#ifndef _H_SHL_ARR_H
-#define _H_SHL_ARR_H
+#ifndef __H_SHL_ARR_H
+#define __H_SHL_ARR_H
 
 #include <string.h>
 
@@ -82,4 +82,4 @@ static inline int __shl_arr_bin_insert(
 #define arr_insert(ptr, index, element) \
 	__shl_arr_insert(ptr, sizeof(*element), index, element)
 
-#endif /* _H_SHL_ARR_H */
+#endif /* __H_SHL_ARR_H */

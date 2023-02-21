@@ -1,14 +1,16 @@
-#ifndef _H_SHL_LIST_H
-#define _H_SHL_LIST_H
+#ifndef __H_SHL_LIST_H
+#define __H_SHL_LIST_H
 
 struct shl_list_node{
 	struct shl_list_node *prev, *next;
 };
 typedef struct shl_list_node shl_list_node_t;
 
-/* biggest hack ever */
-#define shl_get_entry(ptr, type, name) \
+#define container_of(ptr, type, name) \
 	((type*)((char*)ptr-(unsigned long)&(((type*)0)->name)))
+
+#define shl_get_entry(ptr, type, name) \
+	container_of(ptr, type, name)
 
 #define shl_list_for_each(list, iter) \
 	for(iter = list->next; !shl_list_is_head(list, iter); iter = iter->next)
@@ -207,4 +209,4 @@ static inline int shl_list_traverse (
 	return 0;
 }
 
-#endif /*_H_SHL_LIST_H */ 
+#endif /* __H_SHL_LIST_H */

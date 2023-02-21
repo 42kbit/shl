@@ -1,1 +1,1 @@
-SUBDIRS_$(d)	:=rbt list
+SUBDIRS_$(d)	:=rbt list elf
