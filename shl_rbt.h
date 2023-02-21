@@ -1,5 +1,5 @@
-#ifndef _H_SHL_RB_TREE_H
-#define _H_SHL_RB_TREE_H
+#ifndef __H_SHL_RBT_H
+#define __H_SHL_RBT_H
 
 struct shl_rbt_node{
 	struct shl_rbt_node *right, *left, *parent;
@@ -626,4 +626,4 @@ static inline void shl_rbt_remove_node(
 		(*root)->color = RBT_BLACK;
 }
 
-#endif /* _H_SHL_RB_TREE_H */
+#endif /* __H_SHL_RBT_H */

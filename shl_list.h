@@ -211,15 +211,24 @@ static inline struct shl_list_node* shl_list_find(
 	return shl_list_find_full(list, data, NULL, predicate);
 }
 
-#ifdef SHL_LIST_ABSTRACTIONS
-
-#ifndef SHL_LIST_OWNMALLOC
-#include <stdlib.h>
-#endif /* SHL_LIST_OWNMALLOC */
-
-#define shl_allocate_type(type) ((type*)malloc(sizeof(type)))
-#define shl_allocate_types(type, n) ((type*)malloc(sizeof(type) * n))
-
-#endif /* SHL_LIST_ABSTRACTIONS */
+static inline int shl_list_traverse (
+		struct shl_list_node* list,
+		int (*trav_func)(
+			struct shl_list_node* node,
+			void* user_data
+		),
+		void* user_data)
+{
+	int ret;
+	for (struct shl_list_node* iter = list->next, *next = iter->next;
+		!shl_list_is_head(list, iter);
+		iter = next)
+	{
+		next = iter->next;
+		if ((ret = trav_func(iter, user_data)) != 0)
+			return ret;
+	}
+	return 0;
+}
 
 #endif /*_H_SHL_LIST_H */ 

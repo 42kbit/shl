@@ -14,6 +14,12 @@ int sdata_by_data (
 	return shl_get_entry(node, struct data, list)->data == *((int*)data);
 }
 
+int trav_func (struct shl_list_node* node, void* user_data){
+	struct data* data = shl_get_entry(node, struct data, list);
+	printf("%d\n", data->data);
+	return 0;
+}
+
 int main(void){
 	struct data data1;
 	struct data data2;
@@ -46,7 +52,12 @@ int main(void){
 		printf("%d\n", ent->data);
 	}
 
+	/*
 	shl_list_for_each_entry_prev_auto(list, cur, ent, list){
 		printf("%d\n", ent->data);
 	}
+	*/
+	
+	if (shl_list_traverse(list, trav_func, NULL) != 0)
+		printf("List traverse error\n");
 }
