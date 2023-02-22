@@ -4,10 +4,12 @@
 No Rights Reserved
 (check LICENSE for more details)
 
-Point of this project is to create a simple headers data structures,
-sutable for embedded systems.
+SHL is a CC0 software that does not require any explicit premission from its authors to any type of usage.
+For use just simply copy header to your project!
+You can find examples with explanation comments at "usage" directory.
 
-For use just simply copy header to your project! (Code posted under CC0)
+Point of this project is to create a simple C headers data structures,
+sutable for embedded systems.
 
 Idea from list.h file from linux kernel,
 and stb project!
