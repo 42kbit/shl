@@ -73,9 +73,9 @@ typedef Elf32_Half	elf32_half;
 #define EI_MAG3  3 	/* File identification */
 #define EI_CLASS 4	/* File class */
 #define EI_DATA  5 	/* Data encoding */
-#define EI_VERSION 6 	/* File version */
 #define EI_PAD   7 	/* Start of padding bytes */
-#define EI_NIDENT 16	/* Size of e_ident[] */
+#define EI_VERSION 6 	/* File version */
+#define EI_NIDENT  16	/* Size of e_ident[] */
 
 #define ELFMAG0 0x7f /* e_ident[EI_MAG0] */
 #define ELFMAG1 ’E’  /* e_ident[EI_MAG1] */
@@ -83,8 +83,8 @@ typedef Elf32_Half	elf32_half;
 #define ELFMAG3 ’F’  /* e_ident[EI_MAG3] */
 
 #define ELFCLASSNONE 0 /* Invalid class */
-#define ELFCLASS32 1 /* 32-bit objects */
-#define ELFCLASS64 2 /* 64-bit objects */
+#define ELFCLASS32   1 /* 32-bit objects */
+#define ELFCLASS64   2 /* 64-bit objects */
 
 #define ELFDATANONE 0 /* Invalid data encoding */
 #define ELFDATA2LSB 1 /* See below */
@@ -122,8 +122,8 @@ typedef Elf32_Half	elf32_half;
 
 #define STN_UNDEF	0 
 
-#define ELF32_ST_BIND(i) ((i)>>4)
-#define ELF32_ST_TYPE(i) ((i)&0xf)
+#define ELF32_ST_BIND(i)   ((i)>>4)
+#define ELF32_ST_TYPE(i)   ((i)&0xf)
 #define ELF32_ST_INFO(b,t) (((b)<<4)+((t)&0xf))
 
 #define STB_LOCAL 	0 
@@ -132,23 +132,23 @@ typedef Elf32_Half	elf32_half;
 #define STB_LOPROC 	13
 #define STB_HIPROC 	15
 
-#define STT_NOTYPE 0
-#define STT_OBJECT 1
-#define STT_FUNC 2
-#define STT_SECTION 3
-#define STT_FILE 4
-#define STT_LOPROC 13
-#define STT_HIPROC 15
+#define STT_NOTYPE	0
+#define STT_OBJECT	1
+#define STT_FUNC	2
+#define STT_SECTION	3
+#define STT_FILE	4
+#define STT_LOPROC	13
+#define STT_HIPROC	15
 
-#define PT_NULL 0
-#define PT_LOAD 1
-#define PT_DYNAMIC 2
-#define PT_INTERP 3
-#define PT_NOTE 4
-#define PT_SHLIB 5
-#define PT_PHDR 6
-#define PT_LOPROC 0x70000000
-#define PT_HIPROC 0x7fffffff
+#define PT_NULL		0
+#define PT_LOAD		1
+#define PT_DYNAMIC	2
+#define PT_INTERP	3
+#define PT_NOTE		4
+#define PT_SHLIB	5
+#define PT_PHDR		6
+#define PT_LOPROC 	0x70000000
+#define PT_HIPROC 	0x7fffffff
 
 struct elf32_ehdr {
 	unsigned char e_ident[EI_NIDENT];
