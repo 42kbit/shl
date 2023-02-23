@@ -44,73 +44,6 @@
 	#error "Unknown endianness on host machine."
 #endif
 
-static inline uint16_t u16_reverse(uint16_t n){
-	unsigned char *np = (unsigned char *)&n;
-	return 	((uint16_t)np[0] << 8)  |
-		 (uint16_t)np[1];
-}
-static inline uint32_t u32_reverse(uint32_t n){
-	unsigned char *np = (unsigned char *)&n;
-	return 	((uint32_t)np[0] << 24) |
-		((uint32_t)np[1] << 16) |
-		((uint32_t)np[2] << 8)  |
-		 (uint32_t)np[3];
-}
-static inline uint64_t u64_reverse(uint64_t n){
-	unsigned char *np = (unsigned char *)&n;
-	return 	
-		((uint64_t)np[0] << 56) |
-		((uint64_t)np[1] << 48) |
-		((uint64_t)np[2] << 40) |
-		((uint64_t)np[3] << 32) |
-		((uint64_t)np[4] << 24) |
-		((uint64_t)np[5] << 16) |
-		((uint64_t)np[6] << 8)  |
-		 (uint64_t)np[7];
-}
-static inline uint16_t u16_msb_to_host(uint16_t n){
-#ifdef LITTLE_ENDIAN
-	return u16_reverse(n);
-#else
-	return n;
-#endif
-}
-static inline uint32_t u32_msb_to_host(uint32_t n){
-#ifdef LITTLE_ENDIAN
-	return u32_reverse(n);
-#else
-	return n;
-#endif
-}
-static inline uint64_t u64_msb_to_host(uint64_t n){
-#ifdef LITTLE_ENDIAN
-	return u64_reverse(n);
-#else
-	return n;
-#endif
-}
-static inline uint16_t u16_lsb_to_host(uint16_t n){
-#ifdef BIG_ENDIAN
-	return u16_reverse(n);
-#else
-	return n;
-#endif
-}
-static inline uint32_t u32_lsb_to_host(uint32_t n){
-#ifdef BIG_ENDIAN
-	return u32_reverse(n);
-#else
-	return n;
-#endif
-}
-static inline uint64_t u64_lsb_to_host(uint64_t n){
-#ifdef BIG_ENDIAN
-	return u64_reverse(n);
-#else
-	return n;
-#endif
-}
-
 static inline void reverse_bytes(void* _dst, void* _src, int size){
 	for (char* iter_src = (char*)_src, *iter_dst = ((char*)_dst) + size-1;
 		size > 0;
@@ -144,25 +77,29 @@ static inline void msb_to_host(void* dst, void* src, int size){
  * function prototype must be made, such as ones that you see below.
  */
 struct elf_pinfo {
+	void* elf_ehdr;
 	/* General */
 	void (*to_host_endian)(void* dst, void* src, int size);
 
 	/* Header parsing */
-	void (*elf_phoff)(struct elf_pinfo*, void* elf, void* buf);
+	void (*elf_phoff)(struct elf_pinfo*, void* buf);
 };
 
 
-static inline void elf32_phoff(struct elf_pinfo* pinfo, void* hdr, void* buf){
+static inline void elf32_phoff(struct elf_pinfo* pinfo, void* buf){
+	void* hdr = pinfo->elf_ehdr;
 	pinfo->to_host_endian(buf, &((struct elf32_ehdr*)hdr)->e_phoff,
 			sizeof(uint32_t));
 }
 
-static inline void elf64_phoff(struct elf_pinfo* pinfo, void* hdr, void* buf){
+static inline void elf64_phoff(struct elf_pinfo* pinfo, void* buf){
+	void* hdr = pinfo->elf_ehdr;
 	pinfo->to_host_endian(buf, &((struct elf64_ehdr*)hdr)->e_phoff,
 			sizeof(uint64_t));
 }
 
 static inline int elf_pinfo_init_from_ehdr(struct elf_pinfo* info, void* mem){
+	info->elf_ehdr = mem;
 	switch (((struct elf32_ehdr*)mem)->e_ident[EI_CLASS]){
 		case ELFCLASS32:
 			info->elf_phoff = elf32_phoff;
@@ -217,8 +154,8 @@ int main(int argc, char* argv[]){
 		free(mem);
 		return -1;
 	}
-	uint64_t phoff;
-	ops.elf_phoff(&ops, mem, &phoff);
+	uint64_t phoff = 0;
+	ops.elf_phoff(&ops, &phoff);
 	printf("%lu\n", phoff);
 	
 	free(mem);
