@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <errno.h>
+#include <string.h>
 #include "../../shl_elf.h"
 
 #undef  LITTLE_ENDIAN
@@ -42,6 +44,148 @@
 	#error "Unknown endianness on host machine."
 #endif
 
+static inline uint16_t u16_reverse(uint16_t n){
+	unsigned char *np = (unsigned char *)&n;
+	return 	((uint16_t)np[0] << 8)  |
+		 (uint16_t)np[1];
+}
+static inline uint32_t u32_reverse(uint32_t n){
+	unsigned char *np = (unsigned char *)&n;
+	return 	((uint32_t)np[0] << 24) |
+		((uint32_t)np[1] << 16) |
+		((uint32_t)np[2] << 8)  |
+		 (uint32_t)np[3];
+}
+static inline uint64_t u64_reverse(uint64_t n){
+	unsigned char *np = (unsigned char *)&n;
+	return 	
+		((uint64_t)np[0] << 56) |
+		((uint64_t)np[1] << 48) |
+		((uint64_t)np[2] << 40) |
+		((uint64_t)np[3] << 32) |
+		((uint64_t)np[4] << 24) |
+		((uint64_t)np[5] << 16) |
+		((uint64_t)np[6] << 8)  |
+		 (uint64_t)np[7];
+}
+static inline uint16_t u16_msb_to_host(uint16_t n){
+#ifdef LITTLE_ENDIAN
+	return u16_reverse(n);
+#else
+	return n;
+#endif
+}
+static inline uint32_t u32_msb_to_host(uint32_t n){
+#ifdef LITTLE_ENDIAN
+	return u32_reverse(n);
+#else
+	return n;
+#endif
+}
+static inline uint64_t u64_msb_to_host(uint64_t n){
+#ifdef LITTLE_ENDIAN
+	return u64_reverse(n);
+#else
+	return n;
+#endif
+}
+static inline uint16_t u16_lsb_to_host(uint16_t n){
+#ifdef BIG_ENDIAN
+	return u16_reverse(n);
+#else
+	return n;
+#endif
+}
+static inline uint32_t u32_lsb_to_host(uint32_t n){
+#ifdef BIG_ENDIAN
+	return u32_reverse(n);
+#else
+	return n;
+#endif
+}
+static inline uint64_t u64_lsb_to_host(uint64_t n){
+#ifdef BIG_ENDIAN
+	return u64_reverse(n);
+#else
+	return n;
+#endif
+}
+
+static inline void reverse_bytes(void* _dst, void* _src, int size){
+	for (char* iter_src = (char*)_src, *iter_dst = ((char*)_dst) + size-1;
+		size > 0;
+		size--, iter_src++, iter_dst--)
+	{
+		*iter_dst = *iter_src;
+	}
+}
+
+static inline void lsb_to_host(void* dst, void* src, int size){
+#ifdef BIG_ENDIAN
+	return reverse_bytes(dst, src, size);
+#else
+	memcpy(dst, src, size);
+#endif
+}
+static inline void msb_to_host(void* dst, void* src, int size){
+#ifdef LITTLE_ENDIAN
+	reverse_bytes(dst, src, size);
+#else
+	memcpy(dst, src, size);
+#endif
+}
+
+/* ELF Parsing info 
+ * Holds data and functions, used in parsing ELF file,
+ * Used to abstract out things such as:
+ * 	Endianness
+ * 	Byte Order
+ * In order to append functionality, a elf-bullshit agnostic
+ * function prototype must be made, such as ones that you see below.
+ */
+struct elf_pinfo {
+	/* General */
+	void (*to_host_endian)(void* dst, void* src, int size);
+
+	/* Header parsing */
+	void (*elf_phoff)(struct elf_pinfo*, void* elf, void* buf);
+};
+
+
+static inline void elf32_phoff(struct elf_pinfo* pinfo, void* hdr, void* buf){
+	pinfo->to_host_endian(buf, &((struct elf32_ehdr*)hdr)->e_phoff,
+			sizeof(uint32_t));
+}
+
+static inline void elf64_phoff(struct elf_pinfo* pinfo, void* hdr, void* buf){
+	pinfo->to_host_endian(buf, &((struct elf64_ehdr*)hdr)->e_phoff,
+			sizeof(uint64_t));
+}
+
+static inline int elf_pinfo_init_from_ehdr(struct elf_pinfo* info, void* mem){
+	switch (((struct elf32_ehdr*)mem)->e_ident[EI_CLASS]){
+		case ELFCLASS32:
+			info->elf_phoff = elf32_phoff;
+			break;
+		case ELFCLASS64:
+			info->elf_phoff = elf64_phoff;
+			break;
+		case ELFCLASSNONE:
+			return -EINVAL;
+			break;
+	}
+
+	switch (((struct elf32_ehdr*)mem)->e_ident[EI_DATA]){
+		case ELFDATA2LSB:
+			info->to_host_endian = lsb_to_host;
+			break;
+		case ELFDATA2MSB:
+			info->to_host_endian = msb_to_host;
+			break;
+	}
+	return 0;
+}
+
 int main(int argc, char* argv[]){
 	if (argc < 2){
 		printf("Usage: elf_usage <filename>\n");
@@ -67,27 +211,16 @@ int main(int argc, char* argv[]){
 	fread (mem, fsz, fsz, file);
 	fclose(file);
 	
-	switch (((struct elf32_ehdr*)mem)->e_ident[EI_CLASS]){
-		case ELFCLASS32:
-			printf("32\n");
-			break;
-		case ELFCLASS64:
-			printf("64\n");
-			break;
-		case ELFCLASSNONE:
-			fprintf(stderr, "Invalid ELF class field");
-			break;
+	struct elf_pinfo ops;
+	if (elf_pinfo_init_from_ehdr(&ops, mem) < 0){
+		fprintf(stderr, "pinfo init fail\n");
+		free(mem);
+		return -1;
 	}
-
-	switch (((struct elf32_ehdr*)mem)->e_ident[EI_DATA]){
-		case ELFDATA2LSB:
-			printf("lsb\n");
-			break;
-		case ELFDATA2MSB:
-			printf("msb\n");
-			break;
-	}
-
+	uint64_t phoff;
+	ops.elf_phoff(&ops, mem, &phoff);
+	printf("%lu\n", phoff);
+	
 	free(mem);
 	return 0;
 }
