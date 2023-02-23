@@ -114,6 +114,15 @@ struct elf_pinfo {
 	void (*elf_sh_info)	(struct elf_pinfo*, int idx, void* buf);
 	void (*elf_sh_addralign)(struct elf_pinfo*, int idx, void* buf);
 	void (*elf_sh_entsize)	(struct elf_pinfo*, int idx, void* buf);
+
+	void (*elf_p_type)	(struct elf_pinfo*, int idx, void* buf);
+	void (*elf_p_offset)	(struct elf_pinfo*, int idx, void* buf);	
+	void (*elf_p_vaddr)	(struct elf_pinfo*, int idx, void* buf);
+	void (*elf_p_paddr)	(struct elf_pinfo*, int idx, void* buf);
+	void (*elf_p_filesz)	(struct elf_pinfo*, int idx, void* buf);
+	void (*elf_p_memsz)	(struct elf_pinfo*, int idx, void* buf);
+	void (*elf_p_flags)	(struct elf_pinfo*, int idx, void* buf);
+	void (*elf_p_align)	(struct elf_pinfo*, int idx, void* buf);
 };
 
 /* This macro generates getter functions like this one.
@@ -163,10 +172,7 @@ static inline void elf ## bits ## _ ## element(struct elf_pinfo* pinfo, int idx,
 
 /* ELF header getters defines */
 
-static inline void elf_e_ident(struct elf_pinfo* pinfo, void* buf){
-	memcpy(buf, pinfo->elf_ehdr, EI_NIDENT);
-}
-
+__gen_elf_getter_32_64(ehdr, e_ident);
 __gen_elf_getter_32_64(ehdr, e_type);
 __gen_elf_getter_32_64(ehdr, e_machine);
 __gen_elf_getter_32_64(ehdr, e_version);
@@ -197,10 +203,22 @@ __gen_elf_getter_off_32_64(shdr, sh_info);
 __gen_elf_getter_off_32_64(shdr, sh_addralign);
 __gen_elf_getter_off_32_64(shdr, sh_entsize);
 
+/* ELF Segments getters defines */
+
+__gen_elf_getter_off_32_64(phdr, p_type);	
+__gen_elf_getter_off_32_64(phdr, p_offset);
+__gen_elf_getter_off_32_64(phdr, p_vaddr);
+__gen_elf_getter_off_32_64(phdr, p_paddr);
+__gen_elf_getter_off_32_64(phdr, p_filesz);
+__gen_elf_getter_off_32_64(phdr, p_memsz); 
+__gen_elf_getter_off_32_64(phdr, p_flags);
+__gen_elf_getter_off_32_64(phdr, p_align);
+
 static inline int elf_pinfo_init_from_ehdr(struct elf_pinfo* info, void* mem){
 	info->elf_ehdr = mem;
 	switch (((struct elf32_ehdr*)mem)->e_ident[EI_CLASS]){
 		case ELFCLASS32:
+			info->elf_e_ident 	= elf32_e_ident;
                         info->elf_e_type	= elf32_e_type;
                         info->elf_e_machine	= elf32_e_machine;
                         info->elf_e_version	= elf32_e_version;
@@ -225,8 +243,18 @@ static inline int elf_pinfo_init_from_ehdr(struct elf_pinfo* info, void* mem){
                         info->elf_sh_info	= elf32_sh_info;
                         info->elf_sh_addralign	= elf32_sh_addralign;
                         info->elf_sh_entsize	= elf32_sh_entsize;
+
+			info->elf_p_type	= elf32_p_type;
+                        info->elf_p_offset	= elf32_p_offset;
+                        info->elf_p_vaddr	= elf32_p_vaddr;
+                        info->elf_p_paddr	= elf32_p_paddr;
+                        info->elf_p_filesz	= elf32_p_filesz;
+                        info->elf_p_memsz	= elf32_p_memsz;
+                        info->elf_p_flags	= elf32_p_flags;
+                        info->elf_p_align	= elf32_p_align;
 			break;
 		case ELFCLASS64:
+			info->elf_e_ident 	= elf64_e_ident;
                         info->elf_e_type	= elf64_e_type;
                         info->elf_e_machine	= elf64_e_machine;
                         info->elf_e_version	= elf64_e_version;
@@ -251,12 +279,20 @@ static inline int elf_pinfo_init_from_ehdr(struct elf_pinfo* info, void* mem){
                         info->elf_sh_info	= elf64_sh_info;
                         info->elf_sh_addralign	= elf64_sh_addralign;
                         info->elf_sh_entsize	= elf64_sh_entsize;
+
+			info->elf_p_type	= elf64_p_type;
+                        info->elf_p_offset	= elf64_p_offset;
+                        info->elf_p_vaddr	= elf64_p_vaddr;
+                        info->elf_p_paddr	= elf64_p_paddr;
+                        info->elf_p_filesz	= elf64_p_filesz;
+                        info->elf_p_memsz	= elf64_p_memsz;
+                        info->elf_p_flags	= elf64_p_flags;
+                        info->elf_p_align	= elf64_p_align;
 			break;
 		case ELFCLASSNONE:
 			return -EINVAL;
 			break;
 	}
-	info->elf_e_ident = elf_e_ident;
 
 	switch (((struct elf32_ehdr*)mem)->e_ident[EI_DATA]){
 		case ELFDATA2LSB:
@@ -318,7 +354,7 @@ int main(int argc, char* argv[]){
 	ops.elf_e_phentsize(&ops, &phentsize);
 	ops.elf_e_version(&ops, &version);
 
-	ops.elf_sh_name(&ops, 1, &name_idx);
+	ops.elf_sh_type(&ops, 1, &name_idx);
 
 	printf("%lu, %p, %lu, %lu, %lu\n", phoff, (void*)type, phentsize, version, name_idx);
 	
