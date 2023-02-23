@@ -77,7 +77,10 @@ static inline void msb_to_host(void* dst, void* src, int size){
  * function prototype must be made, such as ones that you see below.
  */
 struct elf_pinfo {
-	void* elf_ehdr;
+	void	*elf_ehdr,
+		*elf_phdr,
+		*elf_shdr;
+
 	/* General */
 	void (*to_host_endian)(void* dst, void* src, int size);
 
@@ -96,55 +99,83 @@ struct elf_pinfo {
 	void (*elf_e_shentsize)	(struct elf_pinfo*, void* buf);
 	void (*elf_e_shnum)	(struct elf_pinfo*, void* buf);
 	void (*elf_e_shstrndx)	(struct elf_pinfo*, void* buf);
+	
+	/* Section Header parsing */
+	void (*elf_sh_name)	(struct elf_pinfo*, void* buf);
 
 };
 
 /* This macro generates getter functions like this one.
  *
- * static inline void elf32_e_phoff(struct elf_pinfo* pinfo, void* buf){
+ * __gen_elf_getter(ehdr, uint, 32, e_type, 16)
+ * 	Read as:
+ * 		For 32 bit ehdr elf structure, create getter that writes to "buf" 16 bits of e_type field,
+ * 		after converting to host endianness from endianness specified in e_ident[].
+ * 
+ * 	Results in:
+ * 
+ * static inline void elf32_e_type(struct elf_pinfo* pinfo, void* buf){
  * 	void* hdr = pinfo->elf_ehdr;
- * 	pinfo->to_host_endian(buf, &((struct elf32_ehdr*)hdr)->e_phoff,
- * 			sizeof(uint32_t));
+ * 	pinfo->to_host_endian(buf, &((struct elf32_ehdr*)hdr)->e_type,
+ * 			sizeof(uint16_t));
  * }
 */
-#define __gen_elf_hdr_getter(int, bits, element, element_size)				\
-static inline void elf ## bits ## _ ## element(struct elf_pinfo* pinfo, void* buf) {	\
-	void* hdr = pinfo->elf_ehdr;							\
-	pinfo->to_host_endian(buf, &((struct elf ## bits ## _ehdr*)hdr)->element,	\
-			sizeof(int ## element_size ## _t));				\
+
+#define __gen_elf_getter(what, int, bits, element, element_size)				\
+static inline void elf ## bits ## _ ## element(struct elf_pinfo* pinfo, void* buf) {		\
+	void* hdr = pinfo->elf_ ## what;							\
+	pinfo->to_host_endian(buf, &((struct elf ## bits ## _ ## what *)hdr)->element,		\
+			sizeof(int ## element_size ## _t));					\
 }
 
-#define __gen_elf_hdr_getter_all_16(int, element)	\
-	__gen_elf_hdr_getter(int, 32, element, 16)	\
-	__gen_elf_hdr_getter(int, 64, element, 16)	
-
-#define __gen_elf_hdr_getter_all(int, element)		\
-	__gen_elf_hdr_getter(int, 32, element, 32)	\
-	__gen_elf_hdr_getter(int, 64, element, 64)
-
-__gen_elf_hdr_getter_all_16(uint, e_type);
-__gen_elf_hdr_getter_all_16(uint, e_machine);
-__gen_elf_hdr_getter_all(uint, e_version);
-__gen_elf_hdr_getter_all(uint, e_entry);
-__gen_elf_hdr_getter_all(uint, e_phoff);
-__gen_elf_hdr_getter_all(uint, e_shoff);
-__gen_elf_hdr_getter_all(uint, e_flags);
-__gen_elf_hdr_getter_all_16(uint, e_ehsize);
-__gen_elf_hdr_getter_all_16(uint, e_phentsize);
-__gen_elf_hdr_getter_all_16(uint, e_phnum);
-__gen_elf_hdr_getter_all_16(uint, e_shentsize);
-__gen_elf_hdr_getter_all_16(uint, e_shnum);
-__gen_elf_hdr_getter_all_16(uint, e_shstrndx); 	
+/* ELF header getters defines */
 
 static inline void elf_e_ident(struct elf_pinfo* pinfo, void* buf){
 	memcpy(buf, pinfo->elf_ehdr, EI_NIDENT);
 }
 
+__gen_elf_getter(ehdr, uint, 32, e_type, 16);
+__gen_elf_getter(ehdr, uint, 64, e_type, 16);
+
+__gen_elf_getter(ehdr, uint, 32, e_machine, 16);
+__gen_elf_getter(ehdr, uint, 64, e_machine, 16);
+
+__gen_elf_getter(ehdr, uint, 32, e_version, 32);
+__gen_elf_getter(ehdr, uint, 64, e_version, 32);
+
+__gen_elf_getter(ehdr, uint, 32, e_entry, 32);
+__gen_elf_getter(ehdr, uint, 64, e_entry, 64);
+
+__gen_elf_getter(ehdr, uint, 32, e_phoff, 32);
+__gen_elf_getter(ehdr, uint, 64, e_phoff, 64);
+
+__gen_elf_getter(ehdr, uint, 32, e_shoff, 32);
+__gen_elf_getter(ehdr, uint, 64, e_shoff, 64);
+
+__gen_elf_getter(ehdr, uint, 32, e_flags, 32);
+__gen_elf_getter(ehdr, uint, 64, e_flags, 32);
+
+__gen_elf_getter(ehdr, uint, 32, e_ehsize, 16);
+__gen_elf_getter(ehdr, uint, 64, e_ehsize, 16);
+
+__gen_elf_getter(ehdr, uint, 32, e_phentsize, 16);
+__gen_elf_getter(ehdr, uint, 64, e_phentsize, 16);
+
+__gen_elf_getter(ehdr, uint, 32, e_phnum, 16);
+__gen_elf_getter(ehdr, uint, 64, e_phnum, 16);
+
+__gen_elf_getter(ehdr, uint, 32, e_shentsize, 16);
+__gen_elf_getter(ehdr, uint, 64, e_shentsize, 16);
+
+__gen_elf_getter(ehdr, uint, 32, e_shnum, 16);
+__gen_elf_getter(ehdr, uint, 64, e_shnum, 16);
+
+__gen_elf_getter(ehdr, uint, 32, e_shstrndx, 16);
+__gen_elf_getter(ehdr, uint, 64, e_shstrndx, 16);
 static inline int elf_pinfo_init_from_ehdr(struct elf_pinfo* info, void* mem){
 	info->elf_ehdr = mem;
 	switch (((struct elf32_ehdr*)mem)->e_ident[EI_CLASS]){
 		case ELFCLASS32:
-			info->elf_e_phoff	= elf32_e_phoff;
                         info->elf_e_type	= elf32_e_type;
                         info->elf_e_machine	= elf32_e_machine;
                         info->elf_e_version	= elf32_e_version;
@@ -160,7 +191,6 @@ static inline int elf_pinfo_init_from_ehdr(struct elf_pinfo* info, void* mem){
                         info->elf_e_shstrndx	= elf32_e_shstrndx;
 			break;
 		case ELFCLASS64:
-			info->elf_e_phoff	= elf64_e_phoff;
                         info->elf_e_type	= elf64_e_type;
                         info->elf_e_machine	= elf64_e_machine;
                         info->elf_e_version	= elf64_e_version;
@@ -174,7 +204,6 @@ static inline int elf_pinfo_init_from_ehdr(struct elf_pinfo* info, void* mem){
                         info->elf_e_shentsize	= elf64_e_shentsize;
                         info->elf_e_shnum	= elf64_e_shnum;
                         info->elf_e_shstrndx	= elf64_e_shstrndx;
-
 			break;
 		case ELFCLASSNONE:
 			return -EINVAL;
@@ -190,6 +219,13 @@ static inline int elf_pinfo_init_from_ehdr(struct elf_pinfo* info, void* mem){
 			info->to_host_endian = msb_to_host;
 			break;
 	}
+
+	uint64_t shoff = 0, phoff = 0;
+	info->elf_e_phoff(info, &phoff);
+	info->elf_e_shoff(info, &shoff);
+	info->elf_shdr = (char*)mem + shoff;
+	info->elf_phdr = (char*)mem + phoff;
+
 	return 0;
 }
 
@@ -224,11 +260,12 @@ int main(int argc, char* argv[]){
 		free(mem);
 		return -1;
 	}
-	uint64_t phoff = 0, type = 0, phentsize = 0;
+	uint64_t phoff = 0, type = 0, phentsize = 0, version = 0;
 	ops.elf_e_phoff(&ops, &phoff);
 	ops.elf_e_type (&ops, &type);
 	ops.elf_e_phentsize(&ops, &phentsize);
-	printf("%lu, %p, %lu\n", phoff, (void*)type, phentsize);
+	ops.elf_e_version(&ops, &version);
+	printf("%lu, %p, %lu, %lu\n", phoff, (void*)type, phentsize, version);
 	
 	free(mem);
 	return 0;
