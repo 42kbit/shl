@@ -490,14 +490,14 @@ static inline void elf_print_ehdr (struct elf_pinfo* pinfo){
 	printf(" e_machine	0x%0lx\n", 	machine);
 	printf(" e_version	%s\n", 		elf_ehdr_strversion(vversion));
 	printf(" e_entry	0x%0lx\n", 	entry);
-	printf(" e_phoff	%ld\n", 	phoff);
-	printf(" e_shoff	%ld\n", 	shoff);
+	printf(" e_phoff	0x%0lx\n", 	phoff);
+	printf(" e_shoff	0x%0lx\n", 	shoff);
 	printf(" e_flags	0x%0lx\n",	flags);
-	printf(" e_ehsize	%ld\n",		ehsize);
-	printf(" e_phentsize	%ld\n",		phentsize);
+	printf(" e_ehsize	0x%0lx\n",	ehsize);
+	printf(" e_phentsize	0x%0lx\n",	phentsize);
 	printf(" e_phnum	%ld\n",		phnum);
-	printf(" e_shentsize	%ld\n",		shentsize);
-	printf(" e_shnum	%ld\n",		shnum);
+	printf(" e_shentsize	0x%0lx\n",	shentsize);
+	printf(" e_shnum	0x%0lx\n",	shnum);
 	printf(" e_shstrndx	%ld\n",		shstrndx);
 }
 
@@ -515,11 +515,11 @@ static inline void elf_print_phdr (struct elf_pinfo* pinfo, int idx){
         pinfo->elf_p_flags	(pinfo, idx, &flags);
         pinfo->elf_p_align	(pinfo, idx, &align);
 	printf("  p_type	%s\n", elf_shdr_strtype(type));
-	printf("  p_offset	%ld\n", offset);
+	printf("  p_offset	0x%0lx\n", offset);
 	printf("  p_vaddr	0x%0lx\n", vaddr);
 	printf("  p_paddr	0x%0lx\n", paddr);
-	printf("  p_filesz	%ld\n", filesz);
-	printf("  p_memsz	%ld\n", memsz);
+	printf("  p_filesz	0x%0lx\n", filesz);
+	printf("  p_memsz	0x%0lx\n", memsz);
 	printf("  p_flags	");
 	if (bitset(flags, PF_R)){
 		flags = bitclr(flags, PF_R);
@@ -577,8 +577,8 @@ static inline void elf_print_shdr (struct elf_pinfo* pinfo, int idx){
 	}
 	printf("\n");
 	printf("  sh_addr		0x%0lx\n", 	addr);
-	printf("  sh_offset		%ld\n", 	offset);
-	printf("  sh_size		%ld\n",		size);
+	printf("  sh_offset		0x%0lx\n", 	offset);
+	printf("  sh_size		0x%0lx\n",	size);
 	printf("  sh_link		0x%0lx\n", 	link);
 	printf("  sh_info		0x%0lx\n", 	info);
 	printf("  sh_addralign		0x%0lx\n", 	addralign);
