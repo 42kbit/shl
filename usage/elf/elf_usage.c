@@ -348,21 +348,20 @@ static inline void elf_print_ehdr (struct elf_pinfo* pinfo){
 		 phnum = 0, shentsize = 0, shnum = 0,
 		 shstrndx = 0;
 
-		pinfo->elf_e_type	(pinfo, &type);
-		pinfo->elf_e_machine	(pinfo, &machine);
-		pinfo->elf_e_version	(pinfo, &vversion);
-		pinfo->elf_e_entry	(pinfo, &entry);
-		pinfo->elf_e_phoff	(pinfo, &phoff);
-		pinfo->elf_e_shoff	(pinfo, &shoff);
-		pinfo->elf_e_flags	(pinfo, &flags);
-		pinfo->elf_e_ehsize	(pinfo, &ehsize);
-		pinfo->elf_e_phentsize	(pinfo, &phentsize);
-		pinfo->elf_e_phnum	(pinfo, &phnum);
-		pinfo->elf_e_shentsize	(pinfo, &shentsize);
-		pinfo->elf_e_shnum	(pinfo, &shnum);
-		pinfo->elf_e_shstrndx	(pinfo, &shstrndx);
+	pinfo->elf_e_type	(pinfo, &type);
+	pinfo->elf_e_machine	(pinfo, &machine);
+	pinfo->elf_e_version	(pinfo, &vversion);
+	pinfo->elf_e_entry	(pinfo, &entry);
+	pinfo->elf_e_phoff	(pinfo, &phoff);
+	pinfo->elf_e_shoff	(pinfo, &shoff);
+	pinfo->elf_e_flags	(pinfo, &flags);
+	pinfo->elf_e_ehsize	(pinfo, &ehsize);
+	pinfo->elf_e_phentsize	(pinfo, &phentsize);
+	pinfo->elf_e_phnum	(pinfo, &phnum);
+	pinfo->elf_e_shentsize	(pinfo, &shentsize);
+	pinfo->elf_e_shnum	(pinfo, &shnum);
+	pinfo->elf_e_shstrndx	(pinfo, &shstrndx);
 
-	printf("ELF HEADER\n");
 	printf(" e_ident[]:    %s%c%c%c\n",
 		ident[EI_MAG0] == ELFMAG0? "'0x7f'" : "???",
 		ident[EI_MAG1],
@@ -389,6 +388,60 @@ static inline void elf_print_ehdr (struct elf_pinfo* pinfo){
 	printf(" e_shnum	0x%0lx\n", shnum);
 	printf(" e_shstrndx	0x%0lx\n", shstrndx);
 }
+
+static inline void elf_print_phdr (struct elf_pinfo* pinfo, int idx){
+	uint64_t type = 0, offset = 0,
+        	 vaddr = 0, paddr = 0,
+        	 filesz = 0, memsz = 0,
+		 flags = 0, align = 0;
+	pinfo->elf_p_type	(pinfo, idx, &type);
+        pinfo->elf_p_offset	(pinfo, idx, &offset);
+        pinfo->elf_p_vaddr	(pinfo, idx, &vaddr);
+        pinfo->elf_p_paddr	(pinfo, idx, &paddr);
+        pinfo->elf_p_filesz	(pinfo, idx, &filesz);
+        pinfo->elf_p_memsz	(pinfo, idx, &memsz);
+        pinfo->elf_p_flags	(pinfo, idx, &flags);
+        pinfo->elf_p_align	(pinfo, idx, &align);
+	printf("  p_type	0x%0lx\n", type);
+	printf("  p_offset	0x%0lx\n", offset);
+	printf("  p_vaddr	0x%0lx\n", vaddr);
+	printf("  p_paddr	0x%0lx\n", paddr);
+	printf("  p_filesz	0x%0lx\n", filesz);
+	printf("  p_memsz	0x%0lx\n", memsz);
+	printf("  p_flags	0x%0lx\n", flags);
+	printf("  p_align	0x%0lx\n", align);
+}
+
+static inline void elf_print_shdr (struct elf_pinfo* pinfo, int idx){
+	uint64_t name = 0, type = 0,
+		 flags = 0, addr = 0,
+		 offset = 0, size = 0,
+		 link = 0, info = 0,
+		 addralign = 0, entsize = 0;
+
+	pinfo->elf_sh_name		(pinfo, idx, &name);
+	pinfo->elf_sh_type		(pinfo, idx, &type);
+        pinfo->elf_sh_flags		(pinfo, idx, &flags);
+	pinfo->elf_sh_addr		(pinfo, idx, &addr);
+        pinfo->elf_sh_offset		(pinfo, idx, &offset);
+        pinfo->elf_sh_size		(pinfo, idx, &size);
+        pinfo->elf_sh_link		(pinfo, idx, &link);
+        pinfo->elf_sh_info		(pinfo, idx, &info);
+	pinfo->elf_sh_addralign		(pinfo, idx, &addralign);
+        pinfo->elf_sh_entsize		(pinfo, idx, &entsize);
+
+	printf("  sh_name		0x%0lx\n", name);
+	printf("  sh_type		0x%0lx\n", type);
+	printf("  sh_flags		0x%0lx\n", flags);
+	printf("  sh_addr		0x%0lx\n", addr);
+	printf("  sh_offset		0x%0lx\n", offset);
+	printf("  sh_size		0x%0lx\n", size);
+	printf("  sh_link		0x%0lx\n", link);
+	printf("  sh_info		0x%0lx\n", info);
+	printf("  sh_addralign		0x%0lx\n", addralign);
+	printf("  sh_entsize		0x%0lx\n", entsize);
+}
+
 int main(int argc, char* argv[]){
 	if (argc < 2){
 		printf("Usage: elf_usage <filename>\n");
@@ -420,7 +473,21 @@ int main(int argc, char* argv[]){
 		free(mem);
 		return -1;
 	}
+
+	int phnum = 0, shnum = 0;
+	ops.elf_e_phnum(&ops, &phnum);
+	ops.elf_e_shnum(&ops, &shnum);
+
+	printf("ELF HEADER\n");
 	elf_print_ehdr(&ops);
+	for (int i = 0; i < phnum; i++){
+		printf("ELF PROGRAM HEADER %d\n", i);
+		elf_print_phdr(&ops, i);
+	}
+	for (int i = 0; i < shnum; i++){
+		printf("ELF SECTION HEADER %d\n", i);
+		elf_print_shdr(&ops, i);
+	}
 	
 	free(mem);
 	return 0;
