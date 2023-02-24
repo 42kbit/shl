@@ -8,7 +8,9 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <inttypes.h>
+#include <limits.h>
 #include <errno.h>
 #include <string.h>
 #include "../../shl_elf.h"
@@ -43,6 +45,39 @@
 #else
 	#error "Unknown endianness on host machine."
 #endif
+
+/* bit(0) = 0b00000001 */
+/* bit(4) = 0b00010000 */
+/* bit(5) = 0b00100000 */
+/* bit(7) = 0b10000000 */
+
+#define bit(x) (1<<x)
+
+/* bitmask(0) = 0b00000000 */
+/* bitmask(4) = 0b00001111 */
+/* bitmask(5) = 0b00011111 */
+/* bitmask(7) = 0b01111111 */
+
+#define bitmask(x) (bit(x) - 1)
+
+#define bitoff(x, by) (x << by)
+#define bitset(x, mask) (x & mask)
+
+#define bitclr(x, mask) (x & ~mask)
+
+/* in "val", from "where" bit, take "by" */
+
+/* val = 1100 0110 
+ * bitcut(val, 0, 4) = 0000 0110
+ * bitcut(val, 4, 4) = 0000 1100
+ * */
+
+#define bitcut(val, where, by) ((val >> where) & bitmask(by))
+
+#define RETMNAME(macro) \
+	case macro: return #macro
+
+#define STRINVAL "UNKNOWN"
 
 static inline void reverse_bytes(void* _dst, void* _src, int size){
 	for (char* iter_src = (char*)_src, *iter_dst = ((char*)_dst) + size-1;
@@ -334,6 +369,83 @@ static inline const char* elf_shstr_off(struct elf_pinfo* pinfo, int offset){
 	return (const char*)pinfo->elf_shstr + offset;
 }
 
+static inline const char* elf_ehdr_strclass(uint64_t class){
+	switch (class){
+		RETMNAME(ELFCLASS32);
+		RETMNAME(ELFCLASS64);
+		RETMNAME(ELFCLASSNONE);
+		default: return STRINVAL;
+	}
+}
+
+static inline const char* elf_ehdr_strdata(uint64_t data){
+	switch (data){
+		RETMNAME(ELFDATANONE);
+		RETMNAME(ELFDATA2LSB);
+		RETMNAME(ELFDATA2MSB);
+		default: return STRINVAL;
+	}
+}
+
+static inline const char* elf_ehdr_strversion(uint64_t version){
+	switch (version){
+		RETMNAME(EV_NONE);
+		RETMNAME(EV_CURRENT);
+		default: return STRINVAL;
+	}
+}
+
+static inline const char* elf_ehdr_strtype(uint64_t type){
+	switch (type){
+		RETMNAME(ET_NONE);
+		RETMNAME(ET_REL );
+		RETMNAME(ET_EXEC);
+		RETMNAME(ET_DYN	);
+		RETMNAME(ET_CORE);
+		RETMNAME(ET_NUM	);
+		default: return STRINVAL;
+	}
+}
+
+static inline const char* elf_phdr_strtype(uint64_t type){
+	switch (type){
+		RETMNAME(PT_NULL);
+		RETMNAME(PT_LOAD);
+		RETMNAME(PT_DYNAMIC);
+		RETMNAME(PT_INTERP);
+		RETMNAME(PT_NOTE);
+		RETMNAME(PT_SHLIB);
+		RETMNAME(PT_PHDR);
+		RETMNAME(PT_TLS);
+		RETMNAME(PT_NUM);
+		default: return STRINVAL;
+	}
+}
+
+static inline const char* elf_shdr_strtype(uint64_t type){
+	switch (type){
+		RETMNAME(SHT_NULL); 
+		RETMNAME(SHT_PROGBITS);
+        	RETMNAME(SHT_SYMTAB);
+        	RETMNAME(SHT_STRTAB);
+        	RETMNAME(SHT_RELA);
+        	RETMNAME(SHT_HASH);
+		RETMNAME(SHT_DYNAMIC);
+        	RETMNAME(SHT_NOTE);
+		RETMNAME(SHT_NOBITS);
+        	RETMNAME(SHT_REL); 
+		RETMNAME(SHT_SHLIB);
+        	RETMNAME(SHT_DYNSYM);
+        	RETMNAME(SHT_INIT_ARRAY);
+        	RETMNAME(SHT_FINI_ARRAY);
+        	RETMNAME(SHT_PREINIT_ARRAY);
+        	RETMNAME(SHT_GROUP);
+        	RETMNAME(SHT_SYMTAB_SHNDX);
+        	RETMNAME(SHT_NUM); 
+		default: return STRINVAL;
+	}
+}
+
 static inline void elf_print_ehdr (struct elf_pinfo* pinfo){
 	unsigned char ident[EI_NIDENT];
 	elf_e_ident(pinfo, ident);
@@ -362,31 +474,31 @@ static inline void elf_print_ehdr (struct elf_pinfo* pinfo){
 	pinfo->elf_e_shnum	(pinfo, &shnum);
 	pinfo->elf_e_shstrndx	(pinfo, &shstrndx);
 
-	printf(" e_ident[]:    %s%c%c%c\n",
+	printf(" e_ident[]:     %s%c%c%c\n",
 		ident[EI_MAG0] == ELFMAG0? "'0x7f'" : "???",
 		ident[EI_MAG1],
 		ident[EI_MAG2],
 		ident[EI_MAG3]
 	); 
-	printf("  EI_CLASS 	0x%0lx\n", class); 
-	printf("  EI_DATA  	0x%0lx\n", data); 
-	printf("  EI_VERSION  	0x%0lx\n", version); 
-	printf("  EI_OSABI  	0x%0lx\n", osabi); 
-	printf("  EI_ABIVERSION	0x%0lx\n", abi_ver); 
+	printf("  EI_CLASS 	%s\n", 		elf_ehdr_strclass(class)); 
+	printf("  EI_DATA  	%s\n", 		elf_ehdr_strdata(data)); 
+	printf("  EI_VERSION  	%s\n", 		elf_ehdr_strversion(version));
+	printf("  EI_OSABI  	0x%0lx\n", 	osabi); 
+	printf("  EI_ABIVERSION	0x%0lx\n", 	abi_ver); 
 
-	printf(" e_type		0x%0lx\n", type);
-	printf(" e_machine	0x%0lx\n", machine);
-	printf(" e_version	0x%0lx\n", vversion);
-	printf(" e_entry	0x%0lx\n", entry);
-	printf(" e_phoff	0x%0lx\n", phoff);
-	printf(" e_shoff	0x%0lx\n", shoff);
-	printf(" e_flags	0x%0lx\n", flags);
-	printf(" e_ehsize	0x%0lx\n", ehsize);
-	printf(" e_phentsize	0x%0lx\n", phentsize);
-	printf(" e_phnum	0x%0lx\n", phnum);
-	printf(" e_shentsize	0x%0lx\n", shentsize);
-	printf(" e_shnum	0x%0lx\n", shnum);
-	printf(" e_shstrndx	0x%0lx\n", shstrndx);
+	printf(" e_type		%s\n", 		elf_ehdr_strtype(type));
+	printf(" e_machine	0x%0lx\n", 	machine);
+	printf(" e_version	%s\n", 		elf_ehdr_strversion(vversion));
+	printf(" e_entry	0x%0lx\n", 	entry);
+	printf(" e_phoff	%ld\n", 	phoff);
+	printf(" e_shoff	%ld\n", 	shoff);
+	printf(" e_flags	0x%0lx\n",	flags);
+	printf(" e_ehsize	%ld\n",		ehsize);
+	printf(" e_phentsize	%ld\n",		phentsize);
+	printf(" e_phnum	%ld\n",		phnum);
+	printf(" e_shentsize	%ld\n",		shentsize);
+	printf(" e_shnum	%ld\n",		shnum);
+	printf(" e_shstrndx	%ld\n",		shstrndx);
 }
 
 static inline void elf_print_phdr (struct elf_pinfo* pinfo, int idx){
@@ -402,13 +514,30 @@ static inline void elf_print_phdr (struct elf_pinfo* pinfo, int idx){
         pinfo->elf_p_memsz	(pinfo, idx, &memsz);
         pinfo->elf_p_flags	(pinfo, idx, &flags);
         pinfo->elf_p_align	(pinfo, idx, &align);
-	printf("  p_type	0x%0lx\n", type);
-	printf("  p_offset	0x%0lx\n", offset);
+	printf("  p_type	%s\n", elf_shdr_strtype(type));
+	printf("  p_offset	%ld\n", offset);
 	printf("  p_vaddr	0x%0lx\n", vaddr);
 	printf("  p_paddr	0x%0lx\n", paddr);
-	printf("  p_filesz	0x%0lx\n", filesz);
-	printf("  p_memsz	0x%0lx\n", memsz);
-	printf("  p_flags	0x%0lx\n", flags);
+	printf("  p_filesz	%ld\n", filesz);
+	printf("  p_memsz	%ld\n", memsz);
+	printf("  p_flags	");
+	if (bitset(flags, PF_R)){
+		flags = bitclr(flags, PF_R);
+		printf("R");
+	}
+	if (bitset(flags, PF_W)){
+		flags = bitclr(flags, PF_W);
+		printf("W");
+	}
+	if (bitset(flags, PF_X)){
+		flags = bitclr(flags, PF_X);
+		printf("X");
+	}
+	if (bitset(flags, PF_MASKPROC)){
+		flags = bitclr(flags, PF_MASKPROC);
+		printf(" MASKPROC");
+	}
+	printf("\n");
 	printf("  p_align	0x%0lx\n", align);
 }
 
@@ -430,16 +559,30 @@ static inline void elf_print_shdr (struct elf_pinfo* pinfo, int idx){
 	pinfo->elf_sh_addralign		(pinfo, idx, &addralign);
         pinfo->elf_sh_entsize		(pinfo, idx, &entsize);
 
-	printf("  sh_name		0x%0lx\n", name);
-	printf("  sh_type		0x%0lx\n", type);
-	printf("  sh_flags		0x%0lx\n", flags);
-	printf("  sh_addr		0x%0lx\n", addr);
-	printf("  sh_offset		0x%0lx\n", offset);
-	printf("  sh_size		0x%0lx\n", size);
-	printf("  sh_link		0x%0lx\n", link);
-	printf("  sh_info		0x%0lx\n", info);
-	printf("  sh_addralign		0x%0lx\n", addralign);
-	printf("  sh_entsize		0x%0lx\n", entsize);
+	printf("  sh_name		%s\n", elf_shstr_off(pinfo, name));
+	printf("  sh_type		%s\n", elf_shdr_strtype(type));
+
+	printf("  sh_flags		");
+	if (bitset(flags, SHF_WRITE)){
+		flags = bitclr(flags, SHF_WRITE);
+		printf("W");
+	}
+	if (bitset(flags, SHF_ALLOC)){
+		flags = bitclr(flags, SHF_ALLOC);
+		printf("A");
+	}
+	if (bitset(flags, SHF_EXECINSTR)){
+		flags = bitclr(flags, SHF_EXECINSTR);
+		printf("E");
+	}
+	printf("\n");
+	printf("  sh_addr		0x%0lx\n", 	addr);
+	printf("  sh_offset		%ld\n", 	offset);
+	printf("  sh_size		%ld\n",		size);
+	printf("  sh_link		0x%0lx\n", 	link);
+	printf("  sh_info		0x%0lx\n", 	info);
+	printf("  sh_addralign		0x%0lx\n", 	addralign);
+	printf("  sh_entsize		%ld\n", 	entsize);
 }
 
 int main(int argc, char* argv[]){
