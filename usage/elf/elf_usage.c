@@ -79,7 +79,8 @@ static inline void msb_to_host(void* dst, void* src, int size){
 struct elf_pinfo {
 	void	*elf_ehdr,
 		*elf_phdr,
-		*elf_shdr;
+		*elf_shdr,
+		*elf_shstr;
 
 	int	shdr_size,
 		phdr_size;
@@ -88,7 +89,6 @@ struct elf_pinfo {
 	void (*to_host_endian)(void* dst, void* src, int size);
 
 	/* Header parsing */
-	void (*elf_e_ident)	(struct elf_pinfo*, void* buf);
 	void (*elf_e_type)	(struct elf_pinfo*, void* buf);	 
 	void (*elf_e_machine)	(struct elf_pinfo*, void* buf);
 	void (*elf_e_version)	(struct elf_pinfo*, void* buf);
@@ -172,7 +172,10 @@ static inline void elf ## bits ## _ ## element(struct elf_pinfo* pinfo, int idx,
 
 /* ELF header getters defines */
 
-__gen_elf_getter_32_64(ehdr, e_ident);
+static inline void elf_e_ident(struct elf_pinfo* pinfo, void* buf){
+	memcpy(buf, pinfo->elf_ehdr, EI_NIDENT);
+}
+
 __gen_elf_getter_32_64(ehdr, e_type);
 __gen_elf_getter_32_64(ehdr, e_machine);
 __gen_elf_getter_32_64(ehdr, e_version);
@@ -218,7 +221,6 @@ static inline int elf_pinfo_init_from_ehdr(struct elf_pinfo* info, void* mem){
 	info->elf_ehdr = mem;
 	switch (((struct elf32_ehdr*)mem)->e_ident[EI_CLASS]){
 		case ELFCLASS32:
-			info->elf_e_ident 	= elf32_e_ident;
                         info->elf_e_type	= elf32_e_type;
                         info->elf_e_machine	= elf32_e_machine;
                         info->elf_e_version	= elf32_e_version;
@@ -254,7 +256,6 @@ static inline int elf_pinfo_init_from_ehdr(struct elf_pinfo* info, void* mem){
                         info->elf_p_align	= elf32_p_align;
 			break;
 		case ELFCLASS64:
-			info->elf_e_ident 	= elf64_e_ident;
                         info->elf_e_type	= elf64_e_type;
                         info->elf_e_machine	= elf64_e_machine;
                         info->elf_e_version	= elf64_e_version;
@@ -290,8 +291,8 @@ static inline int elf_pinfo_init_from_ehdr(struct elf_pinfo* info, void* mem){
                         info->elf_p_align	= elf64_p_align;
 			break;
 		case ELFCLASSNONE:
+		default:
 			return -EINVAL;
-			break;
 	}
 
 	switch (((struct elf32_ehdr*)mem)->e_ident[EI_DATA]){
@@ -301,6 +302,8 @@ static inline int elf_pinfo_init_from_ehdr(struct elf_pinfo* info, void* mem){
 		case ELFDATA2MSB:
 			info->to_host_endian = msb_to_host;
 			break;
+		default:
+			return -EINVAL;
 	}
 
 	uint64_t shoff = 0, phoff = 0;
@@ -313,10 +316,79 @@ static inline int elf_pinfo_init_from_ehdr(struct elf_pinfo* info, void* mem){
 
 	info->elf_e_phentsize(info, &info->phdr_size);
 	info->elf_e_shentsize(info, &info->shdr_size);
+	/* get address of string table */
+	
+	uint64_t shstrndx = 0;
+	void* shstrndx_off = NULL;
+
+	info->elf_e_shstrndx(info, &shstrndx);
+	info->elf_sh_offset(info, shstrndx, &shstrndx_off);
+	
+	void* shstrndx_addr = (void*)((unsigned long)mem + (unsigned long)shstrndx_off);
+	info->elf_shstr = shstrndx_addr;
 
 	return 0;
 }
 
+static inline const char* elf_shstr_off(struct elf_pinfo* pinfo, int offset){
+	return (const char*)pinfo->elf_shstr + offset;
+}
+
+static inline void elf_print_ehdr (struct elf_pinfo* pinfo){
+	unsigned char ident[EI_NIDENT];
+	elf_e_ident(pinfo, ident);
+	uint64_t class 		= ident[EI_CLASS],
+		 data  		= ident[EI_DATA],
+		 version	= ident[EI_VERSION],
+		 osabi		= ident[EI_OSABI],
+		 abi_ver	= ident[EI_ABIVERSION],
+		 type = 0, machine = 0, vversion = 0,
+		 entry = 0, phoff = 0, shoff = 0,
+		 flags = 0, ehsize = 0, phentsize = 0,
+		 phnum = 0, shentsize = 0, shnum = 0,
+		 shstrndx = 0;
+
+		pinfo->elf_e_type	(pinfo, &type);
+		pinfo->elf_e_machine	(pinfo, &machine);
+		pinfo->elf_e_version	(pinfo, &vversion);
+		pinfo->elf_e_entry	(pinfo, &entry);
+		pinfo->elf_e_phoff	(pinfo, &phoff);
+		pinfo->elf_e_shoff	(pinfo, &shoff);
+		pinfo->elf_e_flags	(pinfo, &flags);
+		pinfo->elf_e_ehsize	(pinfo, &ehsize);
+		pinfo->elf_e_phentsize	(pinfo, &phentsize);
+		pinfo->elf_e_phnum	(pinfo, &phnum);
+		pinfo->elf_e_shentsize	(pinfo, &shentsize);
+		pinfo->elf_e_shnum	(pinfo, &shnum);
+		pinfo->elf_e_shstrndx	(pinfo, &shstrndx);
+
+	printf("ELF HEADER\n");
+	printf(" e_ident[]:    %s%c%c%c\n",
+		ident[EI_MAG0] == ELFMAG0? "'0x7f'" : "???",
+		ident[EI_MAG1],
+		ident[EI_MAG2],
+		ident[EI_MAG3]
+	); 
+	printf("  EI_CLASS 	0x%0lx\n", class); 
+	printf("  EI_DATA  	0x%0lx\n", data); 
+	printf("  EI_VERSION  	0x%0lx\n", version); 
+	printf("  EI_OSABI  	0x%0lx\n", osabi); 
+	printf("  EI_ABIVERSION	0x%0lx\n", abi_ver); 
+
+	printf(" e_type		0x%0lx\n", type);
+	printf(" e_machine	0x%0lx\n", machine);
+	printf(" e_version	0x%0lx\n", vversion);
+	printf(" e_entry	0x%0lx\n", entry);
+	printf(" e_phoff	0x%0lx\n", phoff);
+	printf(" e_shoff	0x%0lx\n", shoff);
+	printf(" e_flags	0x%0lx\n", flags);
+	printf(" e_ehsize	0x%0lx\n", ehsize);
+	printf(" e_phentsize	0x%0lx\n", phentsize);
+	printf(" e_phnum	0x%0lx\n", phnum);
+	printf(" e_shentsize	0x%0lx\n", shentsize);
+	printf(" e_shnum	0x%0lx\n", shnum);
+	printf(" e_shstrndx	0x%0lx\n", shstrndx);
+}
 int main(int argc, char* argv[]){
 	if (argc < 2){
 		printf("Usage: elf_usage <filename>\n");
@@ -339,7 +411,7 @@ int main(int argc, char* argv[]){
 		fclose(file);
 		return -1;
 	}
-	fread (mem, fsz, fsz, file);
+	fread (mem, fsz, 1, file);
 	fclose(file);
 	
 	struct elf_pinfo ops;
@@ -348,15 +420,7 @@ int main(int argc, char* argv[]){
 		free(mem);
 		return -1;
 	}
-	uint64_t phoff = 0, type = 0, phentsize = 0, version = 0, name_idx = 0;
-	ops.elf_e_phoff(&ops, &phoff);
-	ops.elf_e_type (&ops, &type);
-	ops.elf_e_phentsize(&ops, &phentsize);
-	ops.elf_e_version(&ops, &version);
-
-	ops.elf_sh_type(&ops, 1, &name_idx);
-
-	printf("%lu, %p, %lu, %lu, %lu\n", phoff, (void*)type, phentsize, version, name_idx);
+	elf_print_ehdr(&ops);
 	
 	free(mem);
 	return 0;
