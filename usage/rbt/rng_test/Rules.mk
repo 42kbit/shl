@@ -7,8 +7,6 @@ RBT_OBJS_$(d)	:=$(od)/rbt.o
 
 TGTS_$(d)	:=$(bd)/order $(bd)/rbt
 
-CF_$(d)		:=-O2
-
 $(call append,TGT_BIN,$(d))
 $(d): $(TGTS_$(d))
 

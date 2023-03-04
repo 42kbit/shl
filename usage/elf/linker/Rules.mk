@@ -1,0 +1,1 @@
+SUBDIRS_$(d):=	exec src

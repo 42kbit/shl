@@ -1,21 +1,54 @@
-# VARIABLES AND DEFINES
-# CFLAGS
-CF_ALL	:=-Wall
-# LINK FLAGS
-LF_ALL	:=
-
 # every line with sources, has a mirror in $(DIR_OUT)
 # so ant/main.c, will output at $(DIR_OUT)/ant/main.o
 
 DIR_OUT	?=.out
 DIR_OBJS :=$(DIR_OUT)/.objs
+
 DIR_BIN	?=$(DIR_OUT)/bin
 DIR_SBIN?=$(DIR_OUT)/sbin
 DIR_LIB	?=$(DIR_OUT)/lib
 DIR_ETC	?=$(DIR_OUT)/etc
 
+CFG_FILE	:=Makefile.config
+
+ifneq ("$(wildcard $(CFG_FILE))","")
+$(eval include $(CFG_FILE))
+else
+$(info $(CFG_FILE) file not present! Copying from cfg/$(CFG_FILE)-template)
+$(shell cp cfg/$(CFG_FILE)-template ./$(CFG_FILE))
+$(error now configure $(CFG_FILE) and go on)
+endif
+
+# VARIABLES AND DEFINES
+# CFLAGS
+
+CF_ALL	:=-Wall -Wextra
+ASF_ALL	:=-Wall -Wextra
+
+ifeq ($(DEBUG),n)
+CF_ALL	+=-O2
+ASF_ALL	+=-O2
+else
+CF_ALL	+=-O0 -g
+ASF_ALL	+=-O0 -g
+endif
+
+# LINK FLAGS
+LF_ALL	:=
+
+CONFIG_ALL	:=$(filter CONFIG_%,$(.VARIABLES))
+$(foreach c,$(CONFIG_ALL),\
+	$(eval CF_ALL +=-D$(c)=$($(c)) ) \
+	$(eval ASF_ALL +=-D$(c)=$($(c)) ))
+
+
+get_subdirs = $(shell find $(1) -type d)
+subdirs_append_flags = $(foreach di, $(call get_subdirs, $(1)), $(eval $(2)_$(di) += $(3)))
+
 # default C compiler
 CC	?=gcc
+AS	?=gcc
+LD	?=ld
 # default UNIX install utility
 INST	?=install
 # $(CC) - compile C 
@@ -38,13 +71,23 @@ __CC_COMP=$(CC)\
 	 $(CF_$@)\
 	 $(CF_$(patsubst %/,%,$(dir $<)))\
 	 -o $@ -c $<
-__L_LINK=$(CC)\
+
+__AS_COMP=$(AS)\
+	 $(ASF_ALL)\
+	 $(ASF_$@)\
+	 $(ASF_$(patsubst %/,%,$(dir $<)))\
+	 -o $@ -c $<
+
+__L_LINK=$(LD)\
 	 $(LF_ALL)\
 	 $(LF_$@)\
-	 -o $@ $^
+	 -o $@ $(filter %.o,$^)
 
+AS_COMP	=$(call style,$(__AS_COMP),[AS] $@)
 CC_COMP	=$(call style,$(__CC_COMP),[CC] $@)
 L_LINK	=$(call style,$(__L_LINK),[LD] $@)
+
+OBJS_TOTAL	:=
 
 # sp = stack pointer
 # dirstack_* = stack of directories
@@ -98,6 +141,8 @@ $$(cincdeps)
 endif
 )
 
+$(eval OBJS_TOTAL +=$(OBJS_$(d)))
+
 $(dstack_pop)
 
 endef
@@ -124,9 +169,16 @@ $(foreach val,$(SUBDIRS),\
 	$(call dinclude)\
 	$(rend))
 
+$(OBJS_TOTAL): $(CFG_FILE)
+$(info $(OBJS_TOTAL))
+
 $(DIR_OBJS)/%.o: %.c
 	$(dirguard)
 	$(CC_COMP)
+
+$(DIR_OBJS)/%.o: %.S
+	$(dirguard)
+	$(AS_COMP)
 
 # first echo writes directory, where .o file located
 # to dep file.
@@ -135,7 +187,6 @@ $(DIR_OBJS)/%.o: %.c
 #
 # next C compiler generates make dependency, with
 # given flags (include dirs needed), and writes it to
-# 
 #
 # first  - for directory wide
 # second - specific for file
@@ -145,6 +196,7 @@ $(DIR_OBJS)/%.o: %.c
 __CDEPS	=\
 echo -n $(@D)/ > $@ ;\
 $(CC) -MM $< \
+$(CF_ALL) \
 $(CF_$(patsubst %.c,$(DIR_OBJS)/%.o,$<)) \
 $(CF_$(patsubst %/,%,$(dir $<))) \
 >> $@
@@ -168,4 +220,3 @@ clean:
 clean_%:
 	rm -rf $(DIR_OUT)/$(patsubst clean_%,%,$@)
 	rm -rf $(DIR_OBJS)/$(patsubst clean_%,%,$@)
-

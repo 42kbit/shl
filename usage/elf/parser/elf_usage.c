@@ -13,7 +13,7 @@
 #include <limits.h>
 #include <errno.h>
 #include <string.h>
-#include "../../shl_elf.h"
+#include "../../../shl_elf.h"
 
 #undef  LITTLE_ENDIAN
 #undef  BIG_ENDIAN   
