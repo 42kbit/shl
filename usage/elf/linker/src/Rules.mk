@@ -1,14 +1,19 @@
 
-ASMOBJS_$(d)	:=$(od)/entry.o
-OBJS_$(d)	:=$(ASMOBJS_$(d))
+ASMOBJS_$(d)	:=		\
+		$(od)/entry.o	\
+		$(od)/syscalls.o
+
+COBJS_$(d)	:=$(od)/dlmain.o
+
+OBJS_$(d)	:=$(ASMOBJS_$(d)) $(COBJS_$(d))
 
 TGTS_$(d)	:=$(bd)/linker
 
-LINKER_BINARY	:=$(abspath $(bd)/../src/linker)
+CF_$(d)		+=-fno-stack-protector
 
-ASMF_$(od)/entry.o	:=-nostdlib
+ASF_$(od)/entry.o	+=
 
-LF_$(TGTS_$(d))	:=-nostdlib -dynamic-linker /lib64/ld-linux-x86-64.so.2 
+LF_$(TGTS_$(d))	:=-nostdlib -shared -static-pie
 
 $(call append,TGT_BIN,$(d))
 $(d): $(TGTS_$(d))
