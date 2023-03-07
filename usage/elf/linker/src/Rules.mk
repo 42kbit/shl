@@ -9,11 +9,16 @@ OBJS_$(d)	:=$(ASMOBJS_$(d)) $(COBJS_$(d))
 
 TGTS_$(d)	:=$(bd)/linker
 
-CF_$(d)		+=-fno-stack-protector
+CF_$(d)		+=			\
+		-fno-stack-protector	\
+		-Wno-builtin-declaration-mismatch 
 
 ASF_$(od)/entry.o	+=
 
-LF_$(TGTS_$(d))	:=-nostdlib -shared -static-pie
+LF_$(TGTS_$(d))	:=		\
+		-nostdlib	\
+		-shared		\
+		-static-pie
 
 $(call append,TGT_BIN,$(d))
 $(d): $(TGTS_$(d))

@@ -9,7 +9,7 @@ _start:
 
 	movq (%rsp),  %rax
 
-	leaq (%rsp),  %rdi
+	movq (%rsp),  %rdi
 	leaq 8(%rsp), %rsi
 	leaq 16(%rsp, %rax, 8), %rdx
 
