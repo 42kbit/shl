@@ -17,19 +17,18 @@ int main(int argc, const char* argv[], const char* envp[]){
 	const char** iter;
 	for (iter = envp; *iter != NULL; iter++)
 		;
-	
-	long auxvals[AT_NTYPES] = {0};
-	struct auxv * auxp = (struct auxv*)(iter + 1);
+	struct auxv	*auxp = (struct auxv*)(iter + 1),
+			*auxvals[AT_NTYPES] = {NULL};
 	for (struct auxv* iter = auxp;
 		iter->a_type != AT_NULL;
 		iter++)
 	{
 		if (is_valid_atype(iter)){
-			auxvals[iter->a_type] = iter->a_un.a_val;
+			auxvals[iter->a_type] = iter;
 		}
 	}
 
-	printf ("AT_PHDR = %p\n", auxvals[AT_PHDR]);
+	printf ("AT_PHDR = %p\n", auxvals[AT_PHDR]->a_un.a_val);
 
 	return 0;
 }

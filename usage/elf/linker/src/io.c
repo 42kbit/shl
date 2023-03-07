@@ -5,8 +5,7 @@
 #include "io.h"
 #include "string.h"
 #include "syscall.h"
-
-typedef unsigned long int addr_t;
+#include "cmn.h"
 
 static inline unsigned long sys_write (unsigned int fd, const char* str, size_t slen){
 	unsigned long retval = syscall (1, fd, (unsigned long)str, slen, 0, 0, 0);

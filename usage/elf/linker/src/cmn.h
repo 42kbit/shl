@@ -1,0 +1,74 @@
+#ifndef __H_USAGE_ELF_LINKER_SRC_CMN_H
+#define __H_USAGE_ELF_LINKER_SRC_CMN_H
+
+#define align(x, to) ((x + (to - 1)) & ~(to - 1))
+#define padding(x,to) (align(x,to)-x)
+
+/* https://stackoverflow.com/questions/807244/c-compiler-asserts-how-to-implement */
+#define GLUE(a,b) __GLUE(a,b)
+#define __GLUE(a,b) a ## b
+#define CVERIFY(expr, msg) typedef char GLUE (compiler_verify_, msg) [(expr) ? (+1) : (-1)]
+#define __ASSERT(exp) CVERIFY (exp, __LINE__)
+
+typedef unsigned long int addr_t;
+__ASSERT(sizeof(addr_t) == sizeof(void*));
+
+#ifndef offsetof
+	#define offsetof(type,name)\
+		( (size_t)&(((type*)0)->name) )
+#endif
+
+#ifndef container_of
+	#define container_of(ptr, type, name) \
+		( (type*)((char*)ptr - offsetof(type,name)) )
+#endif
+
+/* offset pointer 'x' by 'val' bytes and cast it to 'type',
+ * and align by 'alignment'
+ */
+#define ptraddca(ptr, offset, type, alignment)\
+	((type)align((addr_t)((addr_t)ptr+(offset)), alignment))
+
+/* offset pointer 'x' by 'val' bytes and cast it to 'type'
+ */
+#define ptraddc(ptr, offset, type)\
+	ptraddca(ptr, offset, type, 1)
+
+/* offset pointer 'x' by 'val' bytes
+ */
+#define ptradd(ptr, offset)\
+	ptraddc(ptr, offset, typeof(x))
+
+typedef char sym;
+#define __symval(x, type) (type)(&x)
+
+/* bit(0) = 0b00000001 */
+/* bit(4) = 0b00010000 */
+/* bit(5) = 0b00100000 */
+/* bit(7) = 0b10000000 */
+
+#define bit(x) (1<<x)
+
+/* bitmask(0) = 0b00000000 */
+/* bitmask(4) = 0b00001111 */
+/* bitmask(5) = 0b00011111 */
+/* bitmask(7) = 0b01111111 */
+
+#define bitmask(x) (bit(x) - 1)
+
+#define bitoff(x, by) (x << by)
+
+/* in "val", from "where" bit, take "by" */
+
+/* val = 1100 0110 
+ * bitcut(val, 0, 4) = 0000 0110
+ * bitcut(val, 4, 4) = 0000 1100
+ * */
+
+#define bitcut(val, where, by) ((val >> where) & bitmask(by))
+
+#define kib(x) (x * (1<<10))
+#define mib(x) (x * (1<<20))
+#define gib(x) (x * (1<<30))
+
+#endif /* __H_USAGE_ELF_LINKER_SRC_CMN_H */

@@ -6,10 +6,9 @@ TGTS_$(d)	:=$(bd)/main
 
 LINKER_BINARY	:=$(abspath $(bd)/../src/linker)
 
-# IDK how to set up .interp right, so take this piece of shit you dumb static linker
-CF_$(od)/main.o	:=  -D__INTERP_PATH=$(LINKER_BINARY)
+CF_$(od)/main.o	:=
 
-LF_$(TGTS_$(d))	:=-nostdlib
+LF_$(TGTS_$(d))	:=-dynamic-linker,$(LINKER_BINARY)
 
 PURE_LD	= ld \
 	$(LF_ALL) \
@@ -19,4 +18,5 @@ PURE_LD	= ld \
 $(call append,TGT_BIN,$(d))
 $(d): $(TGTS_$(d))
 $(TGTS_$(d)):	$(OBJS_$(d))
-	$(PURE_LD)
+	$(L_LINK)
+	patchelf --set-interpreter $(LINKER_BINARY) $@
