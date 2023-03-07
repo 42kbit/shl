@@ -1,6 +1,8 @@
 #ifndef __H_USAGE_ELF_LINKER_SRC_AUX_H
 #define __H_USAGE_ELF_LINKER_SRC_AUX_H
 
+#include <stdbool.h>
+
 #include "../../../../shl_elf.h"
 
 #define AT_NULL		0
@@ -18,6 +20,8 @@
 #define AT_EUID		12
 #define AT_GID		13
 #define AT_EGID		14
+
+#define AT_NTYPES	AT_EGID+1
 
 #define RETMNAME(macro) \
 	case macro: return #macro
@@ -52,6 +56,10 @@ static inline const char* a_val_str (int a_type){
 		RETMNAME(AT_EGID);
 	}
 	return "INVAL";
+}
+
+static inline bool is_valid_atype (struct auxv * p) {
+	return p->a_type >= AT_NULL && p->a_type < AT_NTYPES;
 }
 
 #endif /* __H_USAGE_ELF_LINKER_SRC_AUX_H */
