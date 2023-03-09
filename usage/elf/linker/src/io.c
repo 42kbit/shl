@@ -7,12 +7,6 @@
 #include "syscall.h"
 #include "cmn.h"
 
-static inline unsigned long sys_write (unsigned int fd, const char* str, size_t slen){
-	unsigned long retval = syscall (1, fd, (unsigned long)str, slen, 0, 0, 0);
-	syscall (74, fd, 0, 0, 0, 0, 0);
-	return retval;
-}
-
 void putc	(char c){
 	sys_write (1, &c, 1);
 }

@@ -1,6 +1,14 @@
 #ifndef __H_USAGE_ELF_LINKER_SRC_CMN_H
 #define __H_USAGE_ELF_LINKER_SRC_CMN_H
 
+/* For some fucked up reason this is not a part of POSIX,
+ * but still can be seen on some machines.
+ * Why Stallman... Just why...
+*/
+#ifndef EOK
+#define EOK 0
+#endif
+
 #define align(x, to) ((x + (to - 1)) & ~(to - 1))
 #define padding(x,to) (align(x,to)-x)
 
