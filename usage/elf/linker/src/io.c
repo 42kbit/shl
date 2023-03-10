@@ -76,8 +76,6 @@ static inline ptrdiff_t utoa (uint32_t n, char * buf, uint8_t base, const char* 
 		*(buf_iter++) = digits[digit];
 	}
 	reverse_inplace(buf, strlen(buf));
-	if ((buf_iter - buf) == 0)
-		*(buf_iter++) = '0';
 	return buf_iter - buf;
 }
 
@@ -115,7 +113,10 @@ int vsnprintf	(char * buf, size_t size, const char * fmt, va_list args)
 					buf_ptr += padding;
 				}
 				diff = utoa(addr, buf_ptr, 16, digits);
-				buf_ptr += diff;
+				if (c == 'h' && diff == 0)
+					*(buf_ptr++) = '0';
+				else
+					buf_ptr += diff;
 				break;
 			case 's':
 				__strncat_len(buf_ptr, va_arg(args, const char*), INT_MAX, NULL, (size_t*)&diff);

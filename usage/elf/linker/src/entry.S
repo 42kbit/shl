@@ -3,6 +3,7 @@
 .extern _exit
 .extern dlmain
 
+.section .text, "ax", @progbits
 .globl _start
 _start:
 	xorq %rbx, %rbx

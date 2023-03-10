@@ -32,6 +32,8 @@
 	#error BITS32 and BITS64 are not defined
 #endif
 
+#define PAGE_SIZE 4096
+
 /* Represents loaded shared object. */
 #define PHDR_MAX_LOAD 32
 struct so {
@@ -79,6 +81,58 @@ static inline int init_so_from_auxvals (struct so* p, struct auxv** auxvals) {
 	return EOK;
 }
 
+/* Loads all segments from phdrs that typed LOAD
+ * Writes load address in pbase
+ * Returns error
+*/
+#define EMMAPFAILED 1
+static inline int so_mmap_segments (struct so* p, void** pbase) {
+	char *begin = NULL, *end = NULL;
+	for (	struct elfw(phdr)** iter = p->phdr_load;
+		*iter != NULL;
+		iter++)
+	{
+		begin	= MIN(begin, (char*)(*iter)->p_vaddr);
+		end	= MAX(end, (char*)(*iter)->p_vaddr);
+	}
+	/* Reserve base address for shared object */
+	char* base = sys_mmap(
+		NULL,
+		end - begin,
+		PROT_NONE,
+		MAP_PRIVATE | MAP_ANON,
+		-1, 0);
+	if (base == MAP_FAILED){
+		return -EMMAPFAILED;
+	}
+
+	for (	struct elfw(phdr)** iter = p->phdr_load;
+		*iter != NULL;
+		iter++)
+	{
+		const int alignment = (*iter)->p_align;
+		char 	*i_begin = base +
+				(addr_t)palign_low((*iter)->p_paddr, alignment),
+			*i_end	 = base +
+				(addr_t)palign((*iter)->p_paddr + (*iter)->p_memsz, alignment);
+		int prot = 0;
+		prot |= (*iter)->p_flags & PF_R ? PROT_READ : 0;
+		prot |= (*iter)->p_flags & PF_W ? PROT_WRITE: 0;
+		prot |= (*iter)->p_flags & PF_X ? PROT_EXEC : 0;
+		char* i_sect = sys_mmap(
+			i_begin,
+			i_end - i_begin,
+			prot,
+			MAP_PRIVATE | MAP_FIXED | MAP_ANON,
+			-1, 0);
+		if (i_sect != i_begin){
+			return -EMMAPFAILED;
+		}
+	}
+	*pbase = base;
+	return EOK;
+}
+
 int main(int argc, const char* argv[], const char* envp[]){
 	printf("Linux x86-64 dynamic linker started\n");
 
@@ -106,10 +160,30 @@ int main(int argc, const char* argv[], const char* envp[]){
 		return -retval;
 	}
 
+	/*
+	for (	struct elfw(phdr)** iter = aux_exec.phdr_load;
+		*iter != NULL;
+		iter++)
+	{
+		printf("%p\n", (char*)aux_exec.base + (addr_t)(*iter)->p_vaddr);
+	}
+	*/
+	void* aux_exec_base;
+	if ((retval = so_mmap_segments(&aux_exec, &aux_exec_base))) {
+		printf("Failed to mmap segment\n");
+		return -retval;
+	}
+
 	if (aux_exec.phdr_dynamic == NULL){
 		printf("PT_DYNAMIC header missing! Exiting..\n");
 		return -1;
 	}
+
+	printf("Got base: %p\n", aux_exec.base);
+
+	void (*entry)() = auxvals[AT_ENTRY]->a_un.a_ptr;
+	printf("Got entrypoint: %p\n", entry);
+	entry();
 
 	return EOK;
 }

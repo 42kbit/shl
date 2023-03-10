@@ -10,6 +10,8 @@
 #endif
 
 #define align(x, to) ((x + (to - 1)) & ~(to - 1))
+/* Align to lower */
+#define align_low(x, to) ((x) & ~(to - 1))
 #define padding(x,to) (align(x,to)-x)
 
 /* https://stackoverflow.com/questions/807244/c-compiler-asserts-how-to-implement */
@@ -30,6 +32,11 @@ __ASSERT(sizeof(addr_t) == sizeof(void*));
 	#define container_of(ptr, type, name) \
 		( (type*)((char*)ptr - offsetof(type,name)) )
 #endif
+
+#define palign(x, to) (void*)(((addr_t)x + (to - 1)) & ~(to - 1))
+/* Align to lower */
+#define palign_low(x, to) (void*)(((addr_t)x) & ~(to - 1))
+#define ppadding(x,to) (void*)(palign(x,to)-(addr_t)x)
 
 /* offset pointer 'x' by 'val' bytes and cast it to 'type',
  * and align by 'alignment'
@@ -78,5 +85,8 @@ typedef char sym;
 #define kib(x) (x * (1<<10))
 #define mib(x) (x * (1<<20))
 #define gib(x) (x * (1<<30))
+
+#define MAX(x,y) (x>y?x:y)
+#define MIN(x,y) (x>y?y:x)
 
 #endif /* __H_USAGE_ELF_LINKER_SRC_CMN_H */

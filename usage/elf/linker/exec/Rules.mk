@@ -8,7 +8,7 @@ LINKER_BINARY	:=$(abspath $(bd)/../src/linker)
 
 CF_$(od)/main.o	:=
 
-LF_$(TGTS_$(d))	:=-dynamic-linker,$(LINKER_BINARY)
+LF_$(TGTS_$(d))	:=-dynamic-linker,$(LINKER_BINARY) -nostdlib
 
 PURE_LD	= ld \
 	$(LF_ALL) \
