@@ -34,25 +34,27 @@
 
 #define PAGE_SIZE 4096
 
-/* Represents loaded shared object. */
+/* Descriptor of a loaded in memory shared object. */
 #define PHDR_MAX_LOAD 32
-struct so {
+struct so_mem_desc {
 	void* base;
 	int64_t phdr_nent;
-	struct elfw(phdr)* phdr,
-		/* Pointer to dynamic program header */
-		*phdr_dynamic,
-		/* NULL terminated array of pointers to LOAD headers
-		 * Top of that array to keep size ok
-		 */
-		*phdr_load[PHDR_MAX_LOAD+1],
-		**phdr_load_top;
+	struct elfw(phdr)
+		*phdr, /* Pointer to dynamic program header */
+		*phdr_dynamic, /* Dynamic program header entry */
+		*phdr_load[PHDR_MAX_LOAD+1], /* NULL terminated array of pointers to LOAD headers */
+		**phdr_load_top; /* Top of that array to keep size ok */
+	struct elfw(dyn)
+		*dynamic; /* First entry of dynamic array */
 };
 
 #define EMANYDYN	1
 #define EPHDROVERFLOW	2
-static inline int init_so_from_auxvals (struct so* p, struct auxv** auxvals) {
+static inline int init_so_from_auxvals (struct so_mem_desc* p, struct auxv** auxvals) {
 	p->phdr = auxvals[AT_PHDR]->a_un.a_ptr,
+	/* The pointer itself is valid, cuz it points into ELF ehdr, but content of header itself
+	 * is undefined (no word about it in System V ABI), so p->base is valid(?) for ELF version 1.
+	*/
 	p->base = (char*)p->phdr - sizeof(struct elfw(ehdr));
 	p->phdr_nent = auxvals[AT_PHNUM]->a_un.a_val;
 	p->phdr_load_top = p->phdr_load;
@@ -61,32 +63,35 @@ static inline int init_so_from_auxvals (struct so* p, struct auxv** auxvals) {
 		iter++)
 	{
 		switch(iter->p_type){
-			case PT_DYNAMIC:
-				if(p->phdr_dynamic != NULL){
-					return -EMANYDYN;
-				}
-				p->phdr_dynamic = iter;
-				continue;
-			case PT_LOAD:
-				long int loaded = (p->phdr_load_top - p->phdr_load);
-				if (loaded > PHDR_MAX_LOAD) {
-					return -EPHDROVERFLOW;
-				}
-				*(p->phdr_load_top++) = iter;
-				*(p->phdr_load_top) = NULL; /* Keep it NULL terminated */
-				continue;
+		case PT_DYNAMIC:
+			if(p->phdr_dynamic != NULL){
+				return -EMANYDYN;
+			}
+			p->phdr_dynamic = iter;
+			continue;
+		case PT_LOAD:
+			long int loaded = (p->phdr_load_top - p->phdr_load);
+			if (loaded > PHDR_MAX_LOAD) {
+				return -EPHDROVERFLOW;
+			}
+			*(p->phdr_load_top++) = iter;
+			*(p->phdr_load_top) = NULL; /* Keep it NULL terminated */
+			continue;
 		}
 	}
 
 	return EOK;
 }
 
-/* Loads all segments from phdrs that typed LOAD
- * Writes load address in pbase
- * Returns error
+/* IDK what i was thinking.
+ * This function is very dumb, since it loads ALREADY FUCKING LOADED SEGMENTS
+ * AND DOES MMAP THAT DOES FUCKING NOTHING
+ * TODO: FIXME:
+ * *Sigh* this should be rewtirren so it will take filename or file descriptor to
+ * open ELF, fetch sections from it, close file, than make proper so_mem descriptor.
 */
 #define EMMAPFAILED 1
-static inline int so_mmap_segments (struct so* p, void** pbase) {
+static inline int so_mmap_segments (struct so_mem_desc* p, void** pbase) {
 	char *begin = NULL, *end = NULL;
 	for (	struct elfw(phdr)** iter = p->phdr_load;
 		*iter != NULL;
@@ -152,37 +157,22 @@ int main(int argc, const char* argv[], const char* envp[]){
 		}
 	}
 
-	/* Represents executable given by operating system on startup. */
-	struct so aux_exec;
+	/* Represents executable given by operating system on startup.
+	 * LOAD type segments are already loaded.
+	*/
+	struct so_mem_desc aux_exec;
 	int retval;
 	if ((retval = init_so_from_auxvals (&aux_exec, auxvals)) < EOK){
 		printf("Init from aux error!\n");
 		return -retval;
 	}
 
-	/*
-	for (	struct elfw(phdr)** iter = aux_exec.phdr_load;
-		*iter != NULL;
-		iter++)
-	{
-		printf("%p\n", (char*)aux_exec.base + (addr_t)(*iter)->p_vaddr);
-	}
-	*/
-	void* aux_exec_base;
-	if ((retval = so_mmap_segments(&aux_exec, &aux_exec_base))) {
-		printf("Failed to mmap segment\n");
-		return -retval;
-	}
-
-	if (aux_exec.phdr_dynamic == NULL){
-		printf("PT_DYNAMIC header missing! Exiting..\n");
-		return -1;
-	}
-
 	printf("Got base: %p\n", aux_exec.base);
 
+	/* Before giving control to executable, make sure to push argc, argv[] and envp[]
+	 * according to System V ABI x86-64, but for now, we dont care.
+	 */
 	void (*entry)() = auxvals[AT_ENTRY]->a_un.a_ptr;
-	printf("Got entrypoint: %p\n", entry);
 	entry();
 
 	return EOK;
