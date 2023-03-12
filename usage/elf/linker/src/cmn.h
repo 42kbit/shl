@@ -1,6 +1,7 @@
 #ifndef __H_USAGE_ELF_LINKER_SRC_CMN_H
 #define __H_USAGE_ELF_LINKER_SRC_CMN_H
 
+#include <stddef.h>
 /* For some fucked up reason this is not a part of POSIX,
  * but still can be seen on some machines.
  * Why Stallman... Just why...
@@ -33,26 +34,11 @@ __ASSERT(sizeof(addr_t) == sizeof(void*));
 		( (type*)((char*)ptr - offsetof(type,name)) )
 #endif
 
-#define palign(x, to) (void*)(((addr_t)x + (to - 1)) & ~(to - 1))
-/* Align to lower */
-#define palign_low(x, to) (void*)(((addr_t)x) & ~(to - 1))
-#define ppadding(x,to) (void*)(palign(x,to)-(addr_t)x)
+static inline void* __ptradd (void* p1, void* p2){
+	return (void*)((addr_t)p1 + (addr_t)p2);
+}
 
-/* offset pointer 'x' by 'val' bytes and cast it to 'type',
- * and align by 'alignment'
- */
-#define ptraddca(ptr, offset, type, alignment)\
-	((type)align((addr_t)((addr_t)ptr+(offset)), alignment))
-
-/* offset pointer 'x' by 'val' bytes and cast it to 'type'
- */
-#define ptraddc(ptr, offset, type)\
-	ptraddca(ptr, offset, type, 1)
-
-/* offset pointer 'x' by 'val' bytes
- */
-#define ptradd(ptr, offset)\
-	ptraddc(ptr, offset, typeof(x))
+#define ptradd(p1,p2) __ptradd ((void*)p1, (void*)p2)
 
 typedef char sym;
 #define __symval(x, type) (type)(&x)
@@ -88,5 +74,21 @@ typedef char sym;
 
 #define MAX(x,y) (x>y?x:y)
 #define MIN(x,y) (x>y?y:x)
+
+static inline const char* getenv (const char** envp, const char* ename){
+	for (	const char** iter = envp;
+		*iter != NULL;
+		iter++)
+	{
+		const char* vstr = *iter;
+		for (int i = 0; vstr[i] && (vstr[i] == '=' || (ename[i] && vstr[i] == ename[i])); i++)
+		{
+			if (vstr[i] == '='){
+				return vstr+i+1;
+			}
+		}
+	}
+	return NULL;
+}
 
 #endif /* __H_USAGE_ELF_LINKER_SRC_CMN_H */

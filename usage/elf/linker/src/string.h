@@ -2,6 +2,7 @@
 #define __H_USAGE_ELF_LINKER_SRC_STRING_H
 
 #include <inttypes.h>
+#include <limits.h>
 
 static inline void * memcpy (void * dst, const void * src, size_t size){
 	for (uint32_t i = 0; i < size; i++){
