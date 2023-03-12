@@ -44,12 +44,13 @@ struct so_mem_desc {
 		*phdr_dynamic, /* Dynamic program header entry */
 		*phdr_load[PHDR_MAX_LOAD+1], /* NULL terminated array of pointers to LOAD headers */
 		**phdr_load_top; /* Top of that array to keep size ok */
-	struct elfw(dyn)
-		*dynamic; /* First entry of dynamic array */
 };
 
 #define EMANYDYN	1
 #define EPHDROVERFLOW	2
+/* Initializes shared object memory descriptor from provided auxvals array of pointers.
+ * e.g. auxvals[AT_PHDR] == NULL if no phdr is provided, or point to struct auxv otherwise.
+*/
 static inline int init_so_from_auxvals (struct so_mem_desc* p, struct auxv** auxvals) {
 	p->phdr = auxvals[AT_PHDR]->a_un.a_ptr,
 	/* The pointer itself is valid, cuz it points into ELF ehdr, but content of header itself
@@ -83,59 +84,14 @@ static inline int init_so_from_auxvals (struct so_mem_desc* p, struct auxv** aux
 	return EOK;
 }
 
-/* IDK what i was thinking.
- * This function is very dumb, since it loads ALREADY FUCKING LOADED SEGMENTS
- * AND DOES MMAP THAT DOES FUCKING NOTHING
- * TODO: FIXME:
- * *Sigh* this should be rewtirren so it will take filename or file descriptor to
- * open ELF, fetch sections from it, close file, than make proper so_mem descriptor.
-*/
 #define EMMAPFAILED 1
-static inline int so_mmap_segments (struct so_mem_desc* p, void** pbase) {
-	char *begin = NULL, *end = NULL;
-	for (	struct elfw(phdr)** iter = p->phdr_load;
-		*iter != NULL;
-		iter++)
-	{
-		begin	= MIN(begin, (char*)(*iter)->p_vaddr);
-		end	= MAX(end, (char*)(*iter)->p_vaddr);
-	}
-	/* Reserve base address for shared object */
-	char* base = sys_mmap(
-		NULL,
-		end - begin,
-		PROT_NONE,
-		MAP_PRIVATE | MAP_ANON,
-		-1, 0);
-	if (base == MAP_FAILED){
-		return -EMMAPFAILED;
-	}
-
-	for (	struct elfw(phdr)** iter = p->phdr_load;
-		*iter != NULL;
-		iter++)
-	{
-		const int alignment = (*iter)->p_align;
-		char 	*i_begin = base +
-				(addr_t)palign_low((*iter)->p_paddr, alignment),
-			*i_end	 = base +
-				(addr_t)palign((*iter)->p_paddr + (*iter)->p_memsz, alignment);
-		int prot = 0;
-		prot |= (*iter)->p_flags & PF_R ? PROT_READ : 0;
-		prot |= (*iter)->p_flags & PF_W ? PROT_WRITE: 0;
-		prot |= (*iter)->p_flags & PF_X ? PROT_EXEC : 0;
-		char* i_sect = sys_mmap(
-			i_begin,
-			i_end - i_begin,
-			prot,
-			MAP_PRIVATE | MAP_FIXED | MAP_ANON,
-			-1, 0);
-		if (i_sect != i_begin){
-			return -EMMAPFAILED;
-		}
-	}
-	*pbase = base;
-	return EOK;
+#define EREADFAILED 2
+/* Memory maps ELF file descriptor. After setups descriptor. */
+static inline int so_mmap_fd (struct so_mem_desc* p, unsigned int fd) {
+	struct elfw(ehdr) ehdr;
+	if (sys_read(fd, &ehdr, sizeof(ehdr)))
+		return -EREADFAILED;
+	return 0;
 }
 
 int main(int argc, const char* argv[], const char* envp[]){
