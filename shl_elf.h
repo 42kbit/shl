@@ -87,6 +87,30 @@ typedef elf64_section	Elf64_Section;
 typedef elf32_versym	Elf32_Versym;
 typedef elf64_versym	Elf64_Versym;
 
+/* Danke, https://stackoverflow.com/a/1505631
+ * Preprocessor time check whether CPU is 32 or 64 bit.
+ * 
+ * This shit linker probably wont support 32 bits ever, but who knows, maybe one day...
+ * If so, 32 bit linker would support
+*/
+
+/* Check GCC */
+#if __GNUC__
+	#if __x86_64__ || __ppc64__
+		#define BITS64
+	#else
+		#define BITS32
+	#endif
+#endif
+
+#if defined(BITS32)
+	#define elfw(expr) elf32_ ## expr
+#elif defined(BITS64)
+	#define elfw(expr) elf64_ ## expr
+#else
+	#warning BITS32 and BITS64 are not defined
+#endif
+
 #define EI_NIDENT	16
 #define EI_MAG0		0		/* File identification byte 0 index */
 #define ELFMAG0		0x7f		/* Magic number byte 0 */

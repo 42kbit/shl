@@ -46,4 +46,13 @@ static inline char * strcat (char * s1, const char * s2){
 	return strncat(s1, s2, INT_MAX);
 }
 
+static inline int strcmp (const char* s1, const char* s2){
+	for (int i = 0; s1[i] != '\0' && s2[i] != '\0'; i++){
+		int s;
+		if ((s = s2[i] - s1[i]) != 0)
+			return s;
+	}
+	return 0;
+}
+
 #endif /* __H_USAGE_ELF_LINKER_SRC_STRING_H */

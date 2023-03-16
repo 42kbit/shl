@@ -5,6 +5,7 @@ ASMOBJS_$(d)	:=		\
 
 COBJS_$(d)	:=		\
 		$(od)/dlmain.o	\
+		$(od)/centry.o	\
 		$(od)/io.o
 
 OBJS_$(d)	:=$(ASMOBJS_$(d)) $(COBJS_$(d))

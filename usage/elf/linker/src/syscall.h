@@ -4,6 +4,7 @@
 #include <asm/unistd.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 /* Raw syscall. Order may seem strange, but this way less instructions used.
  * Use syscall (and not _syscall) macro todo call with params inorder.
@@ -46,6 +47,14 @@ static inline void* sys_mmap(void *addr, size_t length, int prot, int flags,
 static inline int sys_munmap(void *addr, size_t length)
 {
 	return (int) syscall (__NR_munmap, addr, length, 0, 0, 0, 0);
+}
+
+static inline int sys_open (const char* path, int flags, mode_t mode) {
+	return (int) syscall (__NR_open, path, flags, mode, 0, 0, 0);
+}
+
+static inline int sys_close (int fd) {
+	return (int) syscall (__NR_close, fd, 0, 0, 0, 0, 0);
 }
 
 static inline int sys_read (unsigned int fd, void* buf, size_t count){
