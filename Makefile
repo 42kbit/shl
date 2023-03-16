@@ -25,12 +25,14 @@ endif
 CF_ALL	:=-Wall -Wextra
 ASF_ALL	:=-Wall -Wextra
 
+OPTLVL	?=-O2
+
 ifeq ($(DEBUG),n)
-CF_ALL	+=-O2
-ASF_ALL	+=-O2
+CF_ALL	+=$(OPTLVL)
+ASF_ALL	+=
 else
-CF_ALL	+=-O0 -g
-ASF_ALL	+=-O0 -g
+CF_ALL	+=$(OPTLVL) -g
+ASF_ALL	+=$(OPTLVL) -g
 endif
 
 # LINK FLAGS

@@ -49,6 +49,7 @@ struct so_mem_desc {
 		**phdr_load_top; /* Top of that array to keep size ok */
 	struct elfw(dyn)
 		*dyn_strtab, /* Points to string table entry in dynamic array */
+		*dyn_got,
 		*dyn_needed[DYN_MAX_DEPS+1],
 		**dyn_needed_top;
 };
@@ -72,12 +73,6 @@ struct libdir{
 };
 
 struct shl_list_node libdirs_head;
-
-#define ENODYN			1
-#define EMANYDYN		2
-#define EPHDROVERFLOW		3
-#define EDYNDEPSOVERFLOW	4
-#define EMANYSTRTAB		5
 
 /* Initializes shared object memory descriptor from provided auxvals array of pointers.
  * e.g. auxvals[AT_PHDR] == NULL if no phdr is provided, or point to struct auxv otherwise.
@@ -103,20 +98,20 @@ static inline int init_so_from_auxvals (struct so_mem_desc* p, struct auxv** aux
 		case PT_LOAD:
 			loaded = (p->phdr_load_top - p->phdr_load);
 			if (loaded > PHDR_MAX_LOAD)
-				return -EPHDROVERFLOW;
+				return -EOVERFLOW;
 			*(p->phdr_load_top++)	= iter;
 			*(p->phdr_load_top)	= NULL; /* Keep it NULL terminated */
 			continue;
 		case PT_DYNAMIC:
 			if(p->phdr_dynamic != NULL)
-				return -EMANYDYN;
+				return -EOVERFLOW;
 			p->phdr_dynamic = iter;
 			continue;
 		}
 	}
 	
 	if (p->phdr_dynamic == NULL)
-		return -ENODYN;
+		return -EINVAL;
 
 	/* Now, parse dynamic segment */
 	for (	struct elfw(dyn)* iter = so_dyn_addr(p);
@@ -127,13 +122,13 @@ static inline int init_so_from_auxvals (struct so_mem_desc* p, struct auxv** aux
 		case DT_NEEDED:
 			loaded = (p->dyn_needed_top - p->dyn_needed);
 			if (loaded > DYN_MAX_DEPS)
-				return -EDYNDEPSOVERFLOW;
+				return -EOVERFLOW;
 			*(p->dyn_needed_top++)	= iter;
 			*(p->dyn_needed_top) 	= NULL;
 			continue;
 		case DT_STRTAB:
 			if (p->dyn_strtab != NULL)
-				return -EMANYSTRTAB;
+				return -EOVERFLOW;
 			p->dyn_strtab = iter;
 			continue;
 		}
@@ -142,14 +137,37 @@ static inline int init_so_from_auxvals (struct so_mem_desc* p, struct auxv** aux
 	return EOK;
 }
 
-#define EMMAPFAILED 1
-#define EREADFAILED 2
 /* Memory maps ELF file descriptor. After setups descriptor. */
-static inline int so_mmap_fd (struct so_mem_desc* p, unsigned int fd) {
+static inline int so_mmap_fd (const struct so_mem_desc* p, int fd) {
+	/* TODO: ELF validation? just in case.
+	 * Maybe do it only in debug
+	*/
 	struct elfw(ehdr) ehdr;
-	if (sys_read(fd, &ehdr, sizeof(ehdr)))
-		return -EREADFAILED;
-	return 0;
+	sys_read (fd, &ehdr, sizeof(struct elfw(ehdr)));
+	
+	/* Total allcation size, this includes:
+	 * ELF Header
+	 * Program headers
+	 * LOAD segments
+	 */
+	size_t btotal = 0;
+	char * minaddr = NULL;
+	char * maxaddr = NULL;
+	/* Append btotal and find min address, that would be used as base. */
+	for (int i = 0; i < ehdr.e_phnum; i++){
+		struct elfw(phdr) phdr;
+		sys_lseek (fd, ehdr.e_phoff + i * ehdr.e_phentsize, SEEK_SET);
+		sys_read (fd, &phdr, sizeof(struct elfw(phdr)));
+
+		if (phdr.p_type != PT_LOAD)
+			continue;
+		minaddr = (char*)MIN((addr_t)minaddr, (addr_t)phdr.p_vaddr);
+		maxaddr = (char*)MAX((addr_t)maxaddr, (addr_t)ptradd(phdr.p_vaddr, phdr.p_memsz));
+	}
+	btotal += maxaddr - minaddr;
+	printf("%p, %p, %h\n", minaddr, maxaddr, btotal);
+
+	return EOK;
 }
 
 /* Returns error code.
@@ -213,13 +231,9 @@ int main(int argc, const char* argv[], const char* envp[]){
 	struct libdir library_path = {
 		.path = getenv(envp, "LD_LIBRARY_PATH")
 	};
-	shl_list_init_node (&(library_path.list));
-	shl_list_insert_safe (&libdirs_head, &(library_path.list));
-	
-	struct shl_list_node* liter;
-	struct libdir* liter_ent;
-	shl_list_for_each_entry_prev_auto((&libdirs_head), liter, liter_ent, list){
-		printf("%s\n", liter_ent->path);
+	if (library_path.path != NULL){
+		shl_list_init_node (&(library_path.list));
+		shl_list_insert_safe (&libdirs_head, &(library_path.list));
 	}
 	
 	const char* failname = NULL;
