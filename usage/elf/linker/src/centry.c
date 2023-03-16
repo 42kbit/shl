@@ -1,6 +1,6 @@
 /* Does a PIC stack pointer load, then jumps to main() */
-#include "cmn.h"
-#include "syscall.h"
+#include <lib/cmn.h>
+#include <lib/syscall.h>
 
 int main(int argc, const char* argv[], const char* envp[]);
 

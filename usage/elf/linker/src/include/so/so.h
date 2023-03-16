@@ -1,8 +1,8 @@
-#ifndef __H_USAGE_ELF_LINKER_SRC_SO_H
-#define __H_USAGE_ELF_LINKER_SRC_SO_H
+#ifndef __H_USAGE_ELF_LINKER_SRC_INCLUDE_SO_SO_H
+#define __H_USAGE_ELF_LINKER_SRC_INCLUDE_SO_SO_H
 
-#include "../../../../shl_elf.h"
-#include "../../../../shl_list.h"
+#include <shl_elf.h>
+#include <shl_list.h>
 #include "string.h"
 #include <stdbool.h>
 
@@ -27,13 +27,9 @@ struct so_mem_desc {
 		**dyn_needed_top;
 };
 
-#define memzero(p)	\
-	memset (p, 0, sizeof(*p))
-
 static inline struct elfw(dyn)* so_dyn_addr (struct so_mem_desc* p){
 	return ptradd (p->base, p->phdr_dynamic->p_vaddr);
 }
-
 static inline struct elfw(sym)* so_symt_addr (struct so_mem_desc* p){
 	return ptradd (p->base, p->dyn_symtab->d_un.d_ptr);
 }
@@ -41,16 +37,13 @@ static inline const char* so_strtab_off (struct so_mem_desc* p, unsigned int off
 	const char * strtab = ptradd(p->base, p->dyn_strtab->d_un.d_ptr);
 	return strtab + offset;
 }
-
 static inline bool is_got_sym (struct so_mem_desc* p, struct elfw(sym)* sym) {
 	return strcmp(so_strtab_off(p, sym->st_name), GOT_NAME_IDENTIFIER) == 0;
 }
-
 struct libdir{
 	const char* path;
 	struct shl_list_node list;
 };
-
 static inline int init_so_mem_desc (
 			struct so_mem_desc* p,
 			struct elfw(phdr)* phdr,
@@ -188,4 +181,4 @@ static inline int load_so_deps (
 	return EOK;
 }
 
-#endif /* __H_USAGE_ELF_LINKER_SRC_SO_H */
+#endif /* __H_USAGE_ELF_LINKER_SRC_INCLUDE_SO_SO_H */

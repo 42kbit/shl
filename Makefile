@@ -160,6 +160,8 @@ append =$(eval $(1):=$($(1)) $(2))
 all: init targets
 	@echo done
 
+ROOT		:=$(PWD)
+
 ROOT_TOP	:=usage
 
 # Copy paste of $(dinclude), but for root mkfile

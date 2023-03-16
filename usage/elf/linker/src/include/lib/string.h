@@ -1,5 +1,5 @@
-#ifndef __H_USAGE_ELF_LINKER_SRC_STRING_H
-#define __H_USAGE_ELF_LINKER_SRC_STRING_H
+#ifndef __H_USAGE_ELF_LINKER_SRC_INCLUDE_LIB_STRING_H
+#define __H_USAGE_ELF_LINKER_SRC_INCLUDE_LIB_STRING_H
 
 #include <inttypes.h>
 #include <limits.h>
@@ -55,4 +55,4 @@ static inline int strcmp (const char* s1, const char* s2){
 	return 0;
 }
 
-#endif /* __H_USAGE_ELF_LINKER_SRC_STRING_H */
+#endif /* __H_USAGE_ELF_LINKER_SRC_INCLUDE_LIB_STRING_H */

@@ -1,5 +1,5 @@
-#ifndef __H_USAGE_ELF_LINKER_SRC_CMN_H
-#define __H_USAGE_ELF_LINKER_SRC_CMN_H
+#ifndef __H_USAGE_ELF_LINKER_SRC_INCLUDE_LIB_CMN_H
+#define __H_USAGE_ELF_LINKER_SRC_INCLUDE_LIB_CMN_H
 
 #include <stddef.h>
 /* For some fucked up reason this is not a part of POSIX,
@@ -91,4 +91,9 @@ static inline const char* getenv (const char** envp, const char* ename){
 	return NULL;
 }
 
-#endif /* __H_USAGE_ELF_LINKER_SRC_CMN_H */
+#define memzero(p)	\
+	memset (p, 0, sizeof(*p))
+
+
+
+#endif /* __H_USAGE_ELF_LINKER_SRC_INCLUDE_LIB_CMN_H */

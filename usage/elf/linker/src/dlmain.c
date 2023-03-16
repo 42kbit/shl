@@ -1,15 +1,17 @@
 #include <errno.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "../../../../shl_elf.h"
-#include "../../../../shl_list.h"
 
-#include "string.h"
+#include <shl_elf.h>
+#include <shl_list.h>
+
+#include <lib/string.h>
+#include <lib/syscall.h>
+#include <lib/io.h>
+#include <lib/cmn.h>
+#include <so/so.h>
+
 #include "aux.h"
-#include "syscall.h"
-#include "io.h"
-#include "cmn.h"
-#include "so.h"
 
 #define PAGE_SIZE 4096
 

@@ -12,7 +12,10 @@ OBJS_$(d)	:=$(ASMOBJS_$(d)) $(COBJS_$(d))
 
 TGTS_$(d)	:=$(bd)/linker
 
-CF_$(d)		+=			\
+CF_$(d)		:=			\
+		$(CF_$(d))		\
+		-I$(d)/include		\
+		-I$(ROOT)		\
 		-fno-stack-protector	\
 		-Wno-builtin-declaration-mismatch	\
 		-fno-builtin

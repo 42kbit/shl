@@ -1,5 +1,5 @@
-#ifndef __H_USAGE_ELF_LINKER_SRC_IO_H
-#define __H_USAGE_ELF_LINKER_SRC_IO_H
+#ifndef __H_USAGE_ELF_LINKER_SRC_INCLUDE_LIB_IO_H
+#define __H_USAGE_ELF_LINKER_SRC_INCLUDE_LIB_IO_H
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -12,4 +12,4 @@ int vprintf	(const char * fmt, va_list args);
 int sprintf	(char * buf, const char * fmt, ...);
 int printf	(const char * fmt, ...);
 
-#endif /* __H_USAGE_ELF_LINKER_SRC_IO_H */
+#endif /* __H_USAGE_ELF_LINKER_SRC_INCLUDE_LIB_IO_H */

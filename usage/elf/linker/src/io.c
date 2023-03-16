@@ -2,10 +2,10 @@
 #include <limits.h>
 #include <errno.h>
 
-#include "io.h"
-#include "string.h"
-#include "syscall.h"
-#include "cmn.h"
+#include <lib/io.h>
+#include <lib/string.h>
+#include <lib/syscall.h>
+#include <lib/cmn.h>
 
 void putc	(char c){
 	sys_write (1, &c, 1);
