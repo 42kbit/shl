@@ -1,16 +1,14 @@
 
-ASMOBJS_$(d)	:=		\
-		$(od)/entry.o	\
-		$(od)/syscalls.o
-
+ASMOBJS_$(d)	:=
 COBJS_$(d)	:=		\
-		$(od)/dlmain.o	\
-		$(od)/centry.o
+		$(od)/dlmain.o	
 
 OBJS_$(d)	:=$(ASMOBJS_$(d)) $(COBJS_$(d))
 
 TGTS_$(d)	:=$(bd)/linker
+
 TGT_LINKER	:=$(TGTS_$(d))
+LINKER_ROOT	:=$(d)
 
 CF_$(d)		:=			\
 		$(CF_$(d))		\
@@ -32,4 +30,4 @@ $(d): $(TGTS_$(d))
 $(TGTS_$(d)):	$(OBJS_$(d))
 	$(L_LINK)
 
-SUBDIRS_$(d)	:=lib
+SUBDIRS_$(d)	:=lib abi

@@ -11,9 +11,8 @@
 #include <lib/cmn.h>
 #include <so/so.h>
 
-#include "aux.h"
-
 #define PAGE_SIZE 4096
+#include "abi/linux-system-v-x86-64/aux.h"
 
 int main(int argc, const char* argv[], const char* envp[]){
 

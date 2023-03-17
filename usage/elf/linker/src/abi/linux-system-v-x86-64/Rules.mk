@@ -1,6 +1,8 @@
+ASMOBJS_$(d)	:=			\
+		$(od)/entry.o		\
+		$(od)/syscalls.o
 
-ASMOBJS_$(d)	:=
-COBJS_$(d)	:=$(od)/io.o
+COBJS_$(d)	:=$(od)/centry.o
 
 OBJS_$(d)	:=$(ASMOBJS_$(d)) $(COBJS_$(d))
 

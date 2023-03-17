@@ -2,6 +2,10 @@
 #include <lib/cmn.h>
 #include <lib/syscall.h>
 
+#include "aux.h"
+
+#define PAGE_SIZE 4096
+
 int main(int argc, const char* argv[], const char* envp[]);
 
 __attribute__((always_inline)) 
