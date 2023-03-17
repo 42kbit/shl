@@ -5,12 +5,12 @@ ASMOBJS_$(d)	:=		\
 
 COBJS_$(d)	:=		\
 		$(od)/dlmain.o	\
-		$(od)/centry.o	\
-		$(od)/io.o
+		$(od)/centry.o
 
 OBJS_$(d)	:=$(ASMOBJS_$(d)) $(COBJS_$(d))
 
 TGTS_$(d)	:=$(bd)/linker
+TGT_LINKER	:=$(TGTS_$(d))
 
 CF_$(d)		:=			\
 		$(CF_$(d))		\
@@ -31,3 +31,5 @@ $(call append,TGT_BIN,$(d))
 $(d): $(TGTS_$(d))
 $(TGTS_$(d)):	$(OBJS_$(d))
 	$(L_LINK)
+
+SUBDIRS_$(d)	:=lib

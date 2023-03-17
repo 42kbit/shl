@@ -6,8 +6,6 @@
 #include "string.h"
 #include <stdbool.h>
 
-#define GOT_NAME_IDENTIFIER "_GLOBAL_OFFSET_TABLE_"
-
 /* Descriptor of a loaded in memory shared object. */
 #define PHDR_MAX_LOAD 32
 #define DYN_MAX_DEPS 32
@@ -27,6 +25,11 @@ struct so_mem_desc {
 		**dyn_needed_top;
 };
 
+struct libdir{
+	const char* path;
+	struct shl_list_node list;
+};
+
 static inline struct elfw(dyn)* so_dyn_addr (struct so_mem_desc* p){
 	return ptradd (p->base, p->phdr_dynamic->p_vaddr);
 }
@@ -37,13 +40,7 @@ static inline const char* so_strtab_off (struct so_mem_desc* p, unsigned int off
 	const char * strtab = ptradd(p->base, p->dyn_strtab->d_un.d_ptr);
 	return strtab + offset;
 }
-static inline bool is_got_sym (struct so_mem_desc* p, struct elfw(sym)* sym) {
-	return strcmp(so_strtab_off(p, sym->st_name), GOT_NAME_IDENTIFIER) == 0;
-}
-struct libdir{
-	const char* path;
-	struct shl_list_node list;
-};
+
 static inline int init_so_mem_desc (
 			struct so_mem_desc* p,
 			struct elfw(phdr)* phdr,
