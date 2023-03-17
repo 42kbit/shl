@@ -1,7 +1,7 @@
 /* Entry to x86-64 Linux System V ABI dynamic linker. */
 
 .extern _exit
-.extern dlmain
+.extern pre_main
 
 .section .text, "ax", @progbits
 .globl _start
@@ -15,4 +15,4 @@ _start:
 	leaq 16(%rsp, %rax, 8), %rdx
 
 	/* job here is done, dlmain must exit on his own. */
-	jmp dlmain
+	jmp pre_main

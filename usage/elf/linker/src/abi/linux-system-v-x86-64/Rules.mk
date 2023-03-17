@@ -10,6 +10,7 @@ CF_$(d)		:=					\
 		$(CF_$(d))				\
 		-I$(LINKER_ROOT)/include		\
 		-I$(ROOT)				\
+		-I$(d)/include				\
 		-fno-stack-protector			\
 		-Wno-builtin-declaration-mismatch	\
 		-fno-builtin

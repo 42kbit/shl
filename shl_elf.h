@@ -21,11 +21,15 @@
 #define NULL ((void*)0)
 #endif
 
-#define container_of(ptr, type, name) \
-	((type*)((char*)ptr-(unsigned long)&(((type*)0)->name)))
+#ifndef container_of
+	#define container_of(ptr, type, name) \
+		((type*)((char*)ptr-(unsigned long)&(((type*)0)->name)))
+#endif
 
-#define shl_get_entry(ptr, type, name) \
-	container_of(ptr, type, name)
+#ifndef shl_get_entry
+	#define shl_get_entry(ptr, type, name) \
+		container_of(ptr, type, name)
+#endif
 
 typedef char			t__int8_t;
 typedef unsigned char		t__uint8_t;

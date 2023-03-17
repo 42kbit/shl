@@ -1,10 +1,13 @@
-#ifndef __H_USAGE_ELF_LINKER_SRC_INCLUDE_SO_SO_H
-#define __H_USAGE_ELF_LINKER_SRC_INCLUDE_SO_SO_H
+#ifndef __H_USAGE_ELF_LINKER_SRC_ABI_LINUX_SYSTEM_V_X86_64_INCLUDE_ABI_SO_H
+#define __H_USAGE_ELF_LINKER_SRC_ABI_LINUX_SYSTEM_V_X86_64_INCLUDE_ABI_SO_H
 
 #include <shl_elf.h>
 #include <shl_list.h>
-#include "string.h"
+#include <lib/string.h>
+#include <lib/io.h>
 #include <stdbool.h>
+
+#include <errno.h>
 
 /* Descriptor of a loaded in memory shared object. */
 #define PHDR_MAX_LOAD 32
@@ -178,4 +181,4 @@ static inline int load_so_deps (
 	return EOK;
 }
 
-#endif /* __H_USAGE_ELF_LINKER_SRC_INCLUDE_SO_SO_H */
+#endif /* __H_USAGE_ELF_LINKER_SRC_ABI_LINUX_SYSTEM_V_X86_64_INCLUDE_ABI_SO_H */

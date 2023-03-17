@@ -6,11 +6,15 @@ struct shl_list_node{
 };
 typedef struct shl_list_node shl_list_node_t;
 
-#define container_of(ptr, type, name) \
-	((type*)((char*)ptr-(unsigned long)&(((type*)0)->name)))
+#ifndef container_of
+	#define container_of(ptr, type, name) \
+		((type*)((char*)ptr-(unsigned long)&(((type*)0)->name)))
+#endif
 
-#define shl_get_entry(ptr, type, name) \
-	container_of(ptr, type, name)
+#ifndef shl_get_entry
+	#define shl_get_entry(ptr, type, name) \
+		container_of(ptr, type, name)
+#endif
 
 #define shl_list_for_each(list, iter) \
 	for(iter = list->next; !shl_list_is_head(list, iter); iter = iter->next)
