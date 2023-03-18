@@ -41,9 +41,9 @@ PURE_LD	= ld \
 $(call append,TGT_BIN,$(d))
 $(d): $(TGT_EXEC_$(d))
 $(TGT_EXEC_$(d)): $(TGT_LTEST_$(d)) $(OBJS_EXEC_$(d))
-	$(L_LINK)
+	$(CC_LINK)
 	patchelf --set-interpreter $(LINKER_BINARY) $@
 
 $(d): $(TGT_LTEST_$(d))
 $(TGT_LTEST_$(d)): $(OBJS_LTEST_$(d))
-	$(L_LINK)
+	$(CC_LINK)

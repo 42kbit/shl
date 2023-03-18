@@ -6,5 +6,5 @@ TGTS_$(d)	:=$(bd)/4_tree_abstraction
 $(call append,TGT_BIN,$(d))
 $(d): $(TGTS_$(d))
 $(TGTS_$(d)):	$(OBJS_$(d))
-	$(L_LINK)
+	$(CC_LINK)
 

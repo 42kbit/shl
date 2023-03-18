@@ -68,26 +68,32 @@ else
 style = @$(1); echo $(2)
 endif
 
-__CC_COMP=$(CC)\
-	 $(CF_ALL)\
-	 $(CF_$@)\
-	 $(CF_$(patsubst %/,%,$(dir $<)))\
+__CC_COMP=$(CC)					\
+	 $(CF_ALL)				\
+	 $(CF_$@)				\
+	 $(CF_$(patsubst %/,%,$(dir $<)))	\
 	 -o $@ -c $<
 
-__AS_COMP=$(AS)\
-	 $(ASF_ALL)\
-	 $(ASF_$@)\
-	 $(ASF_$(patsubst %/,%,$(dir $<)))\
+__AS_COMP=$(AS)					\
+	 $(ASF_ALL)				\
+	 $(ASF_$@)				\
+	 $(ASF_$(patsubst %/,%,$(dir $<)))	\
 	 -o $@ -c $<
 
-__L_LINK=$(LD)\
-	 $(LF_ALL)\
-	 $(LF_$@)\
+__CC_LINK=$(CC)					\
+	 $(LF_ALL)				\
+	 $(LF_$@)				\
 	 -o $@ $(filter %.o,$^)
 
-AS_COMP	=$(call style,$(__AS_COMP),[AS] $@)
-CC_COMP	=$(call style,$(__CC_COMP),[CC] $@)
-L_LINK	=$(call style,$(__L_LINK),[LD] $@)
+__L_LINK=$(LD)					\
+	 $(LF_ALL)				\
+	 $(LF_$@)				\
+	 -o $@ $(filter %.o,$^)
+
+AS_COMP	=$(call style,$(__AS_COMP),[AS]		$@)
+CC_COMP	=$(call style,$(__CC_COMP),[CC]		$@)
+CC_LINK	=$(call style,$(__CC_LINK),[CLD]	$@)
+L_LINK	=$(call style,$(__L_LINK),[LD]		$@)
 
 OBJS_TOTAL	:=
 

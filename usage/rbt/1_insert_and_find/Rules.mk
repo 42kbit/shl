@@ -11,7 +11,7 @@ $(call append,TGT_BIN,$(d))
 $(d): $(TGTS_$(d))
 
 $(bd)/1_insert:	$(INSR_OBJS_$(d))
-	$(L_LINK)
+	$(CC_LINK)
 
 $(bd)/1_find:	$(FIND_OBJS_$(d))
-	$(L_LINK)
+	$(CC_LINK)

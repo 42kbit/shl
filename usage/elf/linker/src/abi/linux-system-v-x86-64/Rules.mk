@@ -17,6 +17,9 @@ CF_$(d)		:=					\
 		-Wno-builtin-declaration-mismatch	\
 		-fno-builtin
 
+LF_$(TGT_LINKER):=					\
+		$(LF_$(TGT_LINKER))			
+
 $(d): $(TGT_LINKER)
 $(TGT_LINKER):	$(OBJS_$(d))
 

@@ -11,7 +11,7 @@ $(call append,TGT_BIN,$(d))
 $(d): $(TGTS_$(d))
 
 $(bd)/rbt:	$(ORD_OBJS_$(d))
-	$(L_LINK)
+	$(CC_LINK)
 
 $(bd)/order:	$(RBT_OBJS_$(d))
-	$(L_LINK)
+	$(CC_LINK)
