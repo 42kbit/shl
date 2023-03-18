@@ -1,22 +1,27 @@
 /* Does a PIC stack pointer load, then jumps to main() */
 #include <lib/cmn.h>
-#include <lib/syscall.h>
+
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdlib.h>
 
 #include <abi/aux.h>
 #include <abi/so.h>
 
 #define PAGE_SIZE 4096
 
-int dlmain();
+const char* __envp_find (const char** envp, const char* ename);
 
-__attribute__((always_inline)) 
-static inline void __set_sp (volatile void* new) {
-	asm volatile ("leaq %0, %%rsp\n\t" : "=m"(new));
-}
+void __set_sp (void* new);
 
 static char __proc_stack[mib(1)];
+/* Generates R_X86_64_RELATIVE */
+static char* __proc_stack_top = (char*)__proc_stack + mib(1);
+
 int pre_main(int argc, const char* argv[], const char* envp[]){
-	__set_sp(__proc_stack);
+	/* THIS IS AN EXTREMLY FUCKED UP WAY OF SETTING STACK.
+	* MUST BE REWRITTEN IN WITH LINKER SCRIPTS AS SOON AS POSSIBLE */
+	__set_sp((void*)&__proc_stack_top);
 
 	/* Seek end of envp[] */
 	const char** iter;
@@ -36,7 +41,7 @@ int pre_main(int argc, const char* argv[], const char* envp[]){
 
 	const struct auxv* auxpg = auxvals[AT_PAGESZ];
 	if(auxpg != NULL && auxpg->a_un.a_val != PAGE_SIZE){
-		printf("Invalid page size. Hardcoded %u, actual %u",
+		printf("Invalid page size. Hardcoded %u, actual %u\n",
 			PAGE_SIZE, auxpg->a_un.a_val);
 		return -1;
 	}
@@ -63,7 +68,7 @@ int pre_main(int argc, const char* argv[], const char* envp[]){
 	shl_list_insert_safe (&libdirs_head, &(default_path.list));
 
 	struct libdir library_path = {
-		.path = getenv(envp, "LD_LIBRARY_PATH")
+		.path = __envp_find (envp, "LD_LIBRARY_PATH")
 	};
 	if (library_path.path != NULL){
 		shl_list_init_node (&(library_path.list));
@@ -80,10 +85,11 @@ int pre_main(int argc, const char* argv[], const char* envp[]){
 	 * according to System V ABI x86-64, but for now, we dont care.
 	 */
 
+	while (1);
 	/* Will segfault for now due to lack of relocation mechanism */
 	void (*entry)() = auxvals[AT_ENTRY]->a_un.a_ptr;
 	entry();
 
-	sys_exit (dlmain());
+	exit (0);
 	return -1;
 }

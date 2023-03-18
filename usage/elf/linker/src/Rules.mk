@@ -1,7 +1,6 @@
 
 ASMOBJS_$(d)	:=
-COBJS_$(d)	:=		\
-		$(od)/dlmain.o	
+COBJS_$(d)	:=
 
 OBJS_$(d)	:=$(ASMOBJS_$(d)) $(COBJS_$(d))
 

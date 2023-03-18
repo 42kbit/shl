@@ -75,25 +75,7 @@ typedef char sym;
 #define MAX(x,y) (x>y?x:y)
 #define MIN(x,y) (x>y?y:x)
 
-static inline const char* getenv (const char** envp, const char* ename){
-	for (	const char** iter = envp;
-		*iter != NULL;
-		iter++)
-	{
-		const char* vstr = *iter;
-		for (int i = 0; vstr[i] && (vstr[i] == '=' || (ename[i] && vstr[i] == ename[i])); i++)
-		{
-			if (vstr[i] == '='){
-				return vstr+i+1;
-			}
-		}
-	}
-	return NULL;
-}
-
 #define memzero(p)	\
 	memset (p, 0, sizeof(*p))
-
-
 
 #endif /* __H_USAGE_ELF_LINKER_SRC_INCLUDE_LIB_CMN_H */

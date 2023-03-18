@@ -4,11 +4,11 @@
 
 #include <lib/io.h>
 #include <lib/string.h>
-#include <lib/syscall.h>
 #include <lib/cmn.h>
+#include <unistd.h>
 
 void putc	(char c){
-	sys_write (1, &c, 1);
+	write (1, &c, 1);
 }
 
 #define PRINTF_MAX_LEN 128

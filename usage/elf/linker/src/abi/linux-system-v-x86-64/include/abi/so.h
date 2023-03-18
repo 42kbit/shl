@@ -124,7 +124,7 @@ static inline int so_mmap_fd (const struct so_mem_desc* p, int fd) {
 	 * Maybe do it only in debug
 	*/
 	struct elfw(ehdr) ehdr;
-	sys_read (fd, &ehdr, sizeof(struct elfw(ehdr)));
+	read (fd, &ehdr, sizeof(struct elfw(ehdr)));
 	
 	/* Total allcation size, this includes:
 	 * ELF Header
@@ -137,8 +137,8 @@ static inline int so_mmap_fd (const struct so_mem_desc* p, int fd) {
 	/* Append btotal and find min address, that would be used as base. */
 	for (int i = 0; i < ehdr.e_phnum; i++){
 		struct elfw(phdr) phdr;
-		sys_lseek (fd, ehdr.e_phoff + i * ehdr.e_phentsize, SEEK_SET);
-		sys_read (fd, &phdr, sizeof(struct elfw(phdr)));
+		lseek (fd, ehdr.e_phoff + i * ehdr.e_phentsize, SEEK_SET);
+		read (fd, &phdr, sizeof(struct elfw(phdr)));
 
 		if (phdr.p_type != PT_LOAD)
 			continue;
@@ -171,11 +171,11 @@ static inline int load_so_deps (
 			strncat (filepath, liter_ent->path, FPATH_MAX);
 			strncat (filepath, "/", FPATH_MAX);
 			strncat (filepath, so_strtab_off(p, (*iter)->d_un.d_val), FPATH_MAX);
-			int fd = sys_open (filepath, O_RDONLY, 0);
+			int fd = open (filepath, O_RDONLY);
 			if (fd < 0)
 				continue;
 			printf ("Dependency %s exists!\n", filepath);
-			sys_close (fd);
+			close (fd);
 		}
 	}
 	return EOK;
