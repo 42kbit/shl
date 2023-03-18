@@ -1,5 +1,5 @@
 CC	:=gcc
 AS	:=gcc
-LD	:=gcc
+LD	:=ld
 
 DEBUG   :=n
