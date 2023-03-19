@@ -19,8 +19,16 @@ static char __proc_stack[mib(1)];
 static char* __proc_stack_top = (char*)__proc_stack + mib(1);
 
 int pre_main(int argc, const char* argv[], const char* envp[]){
-	/* THIS IS AN EXTREMLY FUCKED UP WAY OF SETTING STACK.
-	* MUST BE REWRITTEN IN WITH LINKER SCRIPTS AS SOON AS POSSIBLE */
+	/* Works? YEAH
+	*  Like shit? YEAH
+	*  DO i no other way around? NO I DONT
+	*  5 Hours of assembly debug was not worth it
+	*  
+	* So the stack pointer is set up cuz &__proc_stack_top
+	* generates relocation, that is resolved by kernel upon load.
+	* 
+	* I dont know if that is a standartized way, but at this point i dont care.
+	*/
 	__set_sp((void*)&__proc_stack_top);
 
 	/* Seek end of envp[] */

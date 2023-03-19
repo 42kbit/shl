@@ -1,10 +1,6 @@
 #ifndef __H_USAGE_ELF_LINKER_SRC_ABI_LINUX_SYSTEM_V_X86_64_INCLUDE_ABI_AUX_H
 #define __H_USAGE_ELF_LINKER_SRC_ABI_LINUX_SYSTEM_V_X86_64_INCLUDE_ABI_AUX_H
 
-#include <stdbool.h>
-
-#include <shl_elf.h>
-
 #define AT_NULL		0
 #define AT_IGNORE	1
 #define AT_EXECFD	2
@@ -23,6 +19,13 @@
 
 #define AT_NTYPES	AT_EGID+1
 
+#define AUXE_SIZE 16
+
+#ifndef __ASSEMBLY__
+
+#include <stdbool.h>
+
+#include <shl_elf.h>
 #define RETMNAME(macro) \
 	case macro: return #macro
 
@@ -35,7 +38,7 @@ struct auxv
 		void (*a_fnc)();
 	} a_un;
 };
-__ASSERT(sizeof(struct auxv) == 16);
+__ASSERT(sizeof(struct auxv) == AUXE_SIZE);
 
 static inline const char* a_val_str (int a_type){
 	switch (a_type){
@@ -61,5 +64,7 @@ static inline const char* a_val_str (int a_type){
 static inline bool is_valid_atype (struct auxv * p) {
 	return p->a_type >= AT_NULL && p->a_type < AT_NTYPES;
 }
+
+#endif /* __ASSEMBLY__ */
 
 #endif /* __H_USAGE_ELF_LINKER_SRC_ABI_LINUX_SYSTEM_V_X86_64_INCLUDE_ABI_AUX_H */
