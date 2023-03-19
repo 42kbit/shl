@@ -7,6 +7,7 @@
 
 #include <abi/aux.h>
 #include <abi/so.h>
+#include <abi/so_load.h>
 
 #define PAGE_SIZE 4096
 
@@ -66,22 +67,15 @@ int pre_main(int argc, const char* argv[], const char* envp[]){
 	}
 	
 	struct shl_list_node libdirs_head;
-	/* Init path */
 	shl_list_init_head (&libdirs_head);
 		
-	struct libdir default_path = {
-		.path = "/lib"
-	};
-	shl_list_init_node (&(default_path.list));
-	shl_list_insert_safe (&libdirs_head, &(default_path.list));
-
-	struct libdir library_path = {
-		.path = __envp_find (envp, "LD_LIBRARY_PATH")
-	};
-	if (library_path.path != NULL){
-		shl_list_init_node (&(library_path.list));
-		shl_list_insert_safe (&libdirs_head, &(library_path.list));
-	}
+	struct libdir default_path_node;
+	libdir_add_search_path (&libdirs_head, &(default_path_node.list), "/lib");
+	
+	struct libdir ld_library_path_node;
+	const char* ld_library_path = __envp_find (envp, "LD_LIBRARY_PATH");
+	if (ld_library_path != NULL)
+		libdir_add_search_path (&libdirs_head, &(ld_library_path_node.list), ld_library_path);
 	
 	const char* failname = NULL;
 	if ((retval = load_so_deps (&aux_exec, &libdirs_head, &failname)) < EOK){

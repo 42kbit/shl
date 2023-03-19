@@ -9,28 +9,25 @@
 
 #include <errno.h>
 
+#include <abi/libdir.h>
+
 /* Descriptor of a loaded in memory shared object. */
 #define PHDR_MAX_LOAD 32
 #define DYN_MAX_DEPS 32
 struct so_mem_desc {
-	void	*base,
-		**got;
+	void	*base;
+	void	**got;
 	int64_t	phdr_nent;
-	struct elfw(phdr)
-		*phdr, /* Pointer to dynamic program header */
-		*phdr_dynamic, /* Dynamic program header entry */
-		*phdr_load[PHDR_MAX_LOAD+1], /* NULL terminated array of pointers to LOAD headers */
-		**phdr_load_top; /* Top of that array to keep size ok */
-	struct elfw(dyn)
-		*dyn_strtab, /* Points to string table entry in dynamic array */
-		*dyn_symtab, /* Points to symbol table entry in dynamic array */
-		*dyn_needed[DYN_MAX_DEPS+1],
-		**dyn_needed_top;
-};
 
-struct libdir{
-	const char* path;
-	struct shl_list_node list;
+	struct elfw(phdr) *phdr; /* Pointer to dynamic program header */
+	struct elfw(phdr) *phdr_dynamic; /* Dynamic program header entry */
+	struct elfw(phdr) *phdr_load[PHDR_MAX_LOAD+1]; /* NULL terminated array of pointers to LOAD headers */
+	struct elfw(phdr) **phdr_load_top; /* Top of that array to keep size ok */
+
+	struct elfw(dyn)  *dyn_strtab; /* Points to string table entry in dynamic array */
+	struct elfw(dyn)  *dyn_symtab; /* Points to symbol table entry in dynamic array */
+	struct elfw(dyn)  *dyn_needed[DYN_MAX_DEPS+1];
+	struct elfw(dyn)  **dyn_needed_top;
 };
 
 static inline struct elfw(dyn)* so_dyn_addr (struct so_mem_desc* p){
@@ -115,69 +112,6 @@ static inline int init_so_mem_desc (
 		}
 	}
 
-	return EOK;
-}
-
-/* Memory maps ELF file descriptor. After setups descriptor. */
-static inline int so_mmap_fd (const struct so_mem_desc* p, int fd) {
-	/* TODO: ELF validation? just in case.
-	 * Maybe do it only in debug
-	*/
-	struct elfw(ehdr) ehdr;
-	read (fd, &ehdr, sizeof(struct elfw(ehdr)));
-	
-	/* Total allcation size, this includes:
-	 * ELF Header
-	 * Program headers
-	 * LOAD segments
-	 */
-	size_t btotal = 0;
-	char * minaddr = NULL;
-	char * maxaddr = NULL;
-	/* Append btotal and find min address, that would be used as base. */
-	for (int i = 0; i < ehdr.e_phnum; i++){
-		struct elfw(phdr) phdr;
-		lseek (fd, ehdr.e_phoff + i * ehdr.e_phentsize, SEEK_SET);
-		read (fd, &phdr, sizeof(struct elfw(phdr)));
-
-		if (phdr.p_type != PT_LOAD)
-			continue;
-		minaddr = (char*)MIN((addr_t)minaddr, (addr_t)phdr.p_vaddr);
-		maxaddr = (char*)MAX((addr_t)maxaddr, (addr_t)ptradd(phdr.p_vaddr, phdr.p_memsz));
-	}
-	btotal += maxaddr - minaddr;
-	printf("%p, %p, %h\n", minaddr, maxaddr, btotal);
-
-	return EOK;
-}
-
-/* Returns error code.
- * If fails, filename string pointer is written to *failname
- */
-#define FPATH_MAX 0x1000
-static inline int load_so_deps (
-			struct so_mem_desc* p,
-			struct shl_list_node* search_dirs,
-			const char** failname)
-{
-	for (	struct elfw(dyn)** iter = p->dyn_needed;
-		*iter != NULL;
-		iter++)
-	{
-		struct shl_list_node* liter;
-		struct libdir* liter_ent;
-		shl_list_for_each_entry_auto (search_dirs, liter, liter_ent, list) {
-			char filepath [FPATH_MAX] = {0};
-			strncat (filepath, liter_ent->path, FPATH_MAX);
-			strncat (filepath, "/", FPATH_MAX);
-			strncat (filepath, so_strtab_off(p, (*iter)->d_un.d_val), FPATH_MAX);
-			int fd = open (filepath, O_RDONLY);
-			if (fd < 0)
-				continue;
-			printf ("Dependency %s exists!\n", filepath);
-			close (fd);
-		}
-	}
 	return EOK;
 }
 
