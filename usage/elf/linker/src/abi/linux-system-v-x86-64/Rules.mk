@@ -14,6 +14,7 @@ CF_$(d)		:=					\
 		-I$(d)/include				\
 		-fno-stack-protector			\
 		-mno-red-zone				\
+		-mstackrealign				\
 		-Wno-builtin-declaration-mismatch	\
 		-fno-builtin
 

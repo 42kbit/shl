@@ -6,6 +6,7 @@
 #include <lib/string.h>
 #include <lib/cmn.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 void putc	(char c){
 	write (1, &c, 1);
@@ -27,7 +28,7 @@ int sprintf	(char * dst, const char * fmt, ...){
 }
 
 int vprintf	(const char * fmt, va_list args){
-	char str[PRINTF_MAX_LEN];
+	static char str[PRINTF_MAX_LEN] __attribute__((aligned(16)));
 	memset(str, 0, PRINTF_MAX_LEN * sizeof(char));
 	int written;
 	written = vsnprintf (str, PRINTF_MAX_LEN, fmt, args);
@@ -36,6 +37,18 @@ int vprintf	(const char * fmt, va_list args){
 		putc(*i);
 	}
 	return written;
+}
+
+static inline void __suicide (void) {
+	exit (-1);
+}
+
+void panic	(const char* fmt, ...){
+	va_list args;
+	va_start (args, fmt);
+	vprintf(fmt, args);
+	va_end (args);
+	__suicide ();
 }
 
 int printf	(const char * fmt, ...){

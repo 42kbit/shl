@@ -21,8 +21,14 @@
 #define CVERIFY(expr, msg) typedef char GLUE (compiler_verify_, msg) [(expr) ? (+1) : (-1)]
 #define __ASSERT(exp) CVERIFY (exp, __LINE__)
 
+/* addr_t is and unsigned integer that MUST be equal to pointer size. 
+ * saddr_t is same thing, but signed.
+ */
 typedef unsigned long int addr_t;
+typedef signed long int saddr_t;
+
 __ASSERT(sizeof(addr_t) == sizeof(void*));
+__ASSERT(sizeof(saddr_t) == sizeof(void*));
 
 #ifndef offsetof
 	#define offsetof(type,name)\
@@ -38,7 +44,12 @@ static inline void* __ptradd (void* p1, void* p2){
 	return (void*)((addr_t)p1 + (addr_t)p2);
 }
 
-#define ptradd(p1,p2) __ptradd ((void*)p1, (void*)p2)
+static inline void* __ptralign (void* p1, addr_t alignment){
+	return (void*)align((addr_t)p1, alignment);
+}
+
+#define ptradd(p1,p2)	__ptradd ((void*)p1, (void*)p2)
+#define ptralign(p1,n)	__ptralign ((void*)p1, (addr_t)n)
 
 typedef char sym;
 #define __symval(x, type) (type)(&x)

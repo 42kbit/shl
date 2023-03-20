@@ -162,9 +162,6 @@ SECTIONS {
 		FIXME: Why do we need it? When there is no .bss section, we don't
 		pad the .data section. */
 		. = ALIGN(. != 0 ? 64 / 8 : 1);
-		__proc_stack = ABSOLUTE(.);
-		. += 1M;
-		__proc_stack_top = ABSOLUTE(.);
 	}
 	.lbss :
 	{

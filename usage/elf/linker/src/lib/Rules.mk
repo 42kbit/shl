@@ -2,6 +2,7 @@
 ASMOBJS_$(d)	:=
 COBJS_$(d)	:=		\
 		$(od)/io.o	\
+		$(od)/string.o	\
 		$(od)/getenv.o
 
 
@@ -13,6 +14,7 @@ CF_$(d)		:=					\
 		-I$(ROOT)				\
 		-fno-stack-protector			\
 		-Wno-builtin-declaration-mismatch	\
+		-mstackrealign				\
 		-fno-builtin
 
 $(d): $(TGT_LINKER)
