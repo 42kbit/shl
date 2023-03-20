@@ -12,12 +12,7 @@
 
 const char* __envp_find (const char** envp, const char* ename);
 
-void __set_sp (void* new);
-
 int pre_main(int argc, const char* argv[], const char* envp[]){
-
-	printf ("Hello, world!\n");
-
 	/* Seek end of envp[] */
 	const char** iter;
 	for (iter = envp; *iter != NULL; iter++)
@@ -76,5 +71,4 @@ int pre_main(int argc, const char* argv[], const char* envp[]){
 	entry();
 
 	exit (0);
-	return -1;
 }

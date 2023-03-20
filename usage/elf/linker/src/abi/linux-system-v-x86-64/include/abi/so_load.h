@@ -33,7 +33,7 @@ static inline int so_mmap_fd (struct so_mem_desc* dst, const struct so_mem_desc*
 	char* load_min = NULL;
 	if (__phdr_find_load_bounds_from_fd(fd, (void**)&load_min, (void**)&load_max) < EOK)
 		return -EINVAL;
-	if (load_min < load_max)
+	if (load_min > load_max)
 		return -EINVAL;
 	printf ("%p, %p\n", load_min, load_max);
 	return EOK;

@@ -1,7 +1,6 @@
 ASMOBJS_$(d)	:=			\
 		$(od)/entry.o		\
-		$(od)/syscalls.o	\
-		$(od)/stack.o
+		$(od)/syscalls.o
 
 COBJS_$(d)	:=$(od)/centry.o
 
