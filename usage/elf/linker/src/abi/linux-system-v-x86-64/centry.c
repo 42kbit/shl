@@ -12,6 +12,17 @@
 
 const char* __envp_find (const char** envp, const char* ename);
 
+static inline void parse_auxp (struct auxv** dst, struct auxv* raw_auxv) {
+	for (struct auxv* iter = raw_auxv;
+		iter->a_type != AT_NULL;
+		iter++)
+	{
+		if (is_valid_atype(iter)){
+			dst[iter->a_type] = iter;
+		}
+	}
+}
+
 int pre_main(int argc, const char* argv[], const char* envp[]){
 	/* Seek end of envp[] */
 	const char** iter;
@@ -20,14 +31,7 @@ int pre_main(int argc, const char* argv[], const char* envp[]){
 	/* Write auxv into auxvals to easy access. */
 	struct auxv	*auxp = (struct auxv*)(iter + 1),
 			*auxvals[AT_NTYPES] = {NULL};
-	for (struct auxv* iter = auxp;
-		iter->a_type != AT_NULL;
-		iter++)
-	{
-		if (is_valid_atype(iter)){
-			auxvals[iter->a_type] = iter;
-		}
-	}
+	parse_auxp (auxvals, auxp);
 
 	const struct auxv* auxpg = auxvals[AT_PAGESZ];
 	if(auxpg != NULL && auxpg->a_un.a_val != PAGE_SIZE){
@@ -70,5 +74,5 @@ int pre_main(int argc, const char* argv[], const char* envp[]){
 	void (*entry)() = auxvals[AT_ENTRY]->a_un.a_ptr;
 	entry();
 
-	exit (0);
+	sys_exit (0);
 }

@@ -11,6 +11,7 @@ OBJS_$(d)	:=$(ASMOBJS_$(d)) $(COBJS_$(d))
 CF_$(d)		:=					\
 		$(CF_$(d))				\
 		-I$(LINKER_ROOT)/include		\
+		-I$(LINKER_ABI_ROOT)/include		\
 		-I$(ROOT)				\
 		-fno-stack-protector			\
 		-Wno-builtin-declaration-mismatch	\

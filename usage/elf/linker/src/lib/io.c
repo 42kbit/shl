@@ -8,8 +8,10 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#include <abi/syscalls.h>
+
 void putc	(char c){
-	write (1, &c, 1);
+	sys_write (1, &c, 1);
 }
 
 #define PRINTF_MAX_LEN 128
@@ -40,7 +42,7 @@ int vprintf	(const char * fmt, va_list args){
 }
 
 static inline void __suicide (void) {
-	exit (-1);
+	sys_exit (-1);
 }
 
 void panic	(const char* fmt, ...){

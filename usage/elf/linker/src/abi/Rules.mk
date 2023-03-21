@@ -1,1 +1,1 @@
-SUBDIRS_$(d):=linux-system-v-x86-64
+SUBDIRS_$(d):=$(LINKER_ABI)

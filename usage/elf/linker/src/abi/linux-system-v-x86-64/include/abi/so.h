@@ -11,6 +11,8 @@
 
 #include <abi/libdir.h>
 
+#include <abi/syscalls.h>
+
 /* Descriptor of a loaded in memory shared object. */
 #define PHDR_MAX_LOAD 32
 #define DYN_MAX_DEPS 32

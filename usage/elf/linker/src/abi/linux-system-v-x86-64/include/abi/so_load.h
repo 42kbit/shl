@@ -4,18 +4,37 @@
 #include <abi/so.h>
 #include <abi/page.h>
 
+#include <abi/syscalls.h>
+
+static inline int __read_ehdr (struct elfw(ehdr)* ehdr, int fd) {
+	if (sys_lseek (fd, 0, SEEK_SET) < 0)
+		return -EINVAL;
+	if (sys_read (fd, ehdr, sizeof(struct elfw(ehdr))) < 0)
+		return -EINVAL;
+	return EOK;
+}
+
+static inline int __read_phdr (struct elfw(phdr)* dst, struct elfw(ehdr)* ehdr,
+			       int fd, int idx)
+{
+	if (sys_lseek (fd, ehdr->e_phoff + idx * ehdr->e_phentsize, SEEK_SET) < 0)
+			return -EINVAL;
+	if (sys_read (fd, dst, sizeof(struct elfw(phdr))) < 0)
+			return -EINVAL;
+	return EOK;
+}
+
 /* Finds Min and Max load addresses. */
 static inline int __phdr_find_load_bounds_from_fd (int fd, void** min, void** max)
 {
 	/* Read ehdr to stack */
 	struct elfw(ehdr) ehdr;
-	read (fd, &ehdr, sizeof(struct elfw(ehdr)));
+	__read_ehdr (&ehdr, fd);
 	
 	/* Iterate over phdrs, finding min and max load address */
 	for (int i = 0; i < ehdr.e_phnum; i++){
 		struct elfw(phdr) phdr;
-		lseek (fd, ehdr.e_phoff + i * ehdr.e_phentsize, SEEK_SET);
-		read (fd, &phdr, sizeof(struct elfw(phdr)));
+		__read_phdr (&phdr, &ehdr, fd, i);
 
 		if (phdr.p_type != PT_LOAD)
 			continue;
@@ -27,15 +46,49 @@ static inline int __phdr_find_load_bounds_from_fd (int fd, void** min, void** ma
 	return EOK;
 }
 
+static inline int __phdr_mmap_load (void* _base, int fd) {
+	char* base = _base;
+
+	/* Read ehdr to stack */
+	struct elfw(ehdr) ehdr;
+	__read_ehdr (&ehdr, fd);
+	
+	/* Iterate over phdrs, finding min and max load address */
+	for (int i = 0; i < ehdr.e_phnum; i++){
+		struct elfw(phdr) phdr;
+		__read_phdr (&phdr, &ehdr, fd, i);
+		
+		elfw(off) offset = align(phdr.p_offset, PAGE_SIZE);
+
+		if (phdr.p_type != PT_LOAD)
+			continue;
+		int prot = 	(phdr.p_flags & PF_R ? PROT_READ  : 0) |
+				(phdr.p_flags & PF_W ? PROT_WRITE : 0) |
+				(phdr.p_flags & PF_X ? PROT_EXEC  : 0) ;
+		void* sect = sys_mmap (base + phdr.p_vaddr, phdr.p_memsz, prot,
+				   MAP_PRIVATE | MAP_FIXED, fd, offset);
+		if (sect == MAP_FAILED)
+			return -EINVAL;
+	}
+	return EOK;
+}
+
 /* Memory maps ELF file descriptor. After setups descriptor, pointed by dst */
 static inline int so_mmap_fd (struct so_mem_desc* dst, const struct so_mem_desc* p, int fd) {
 	char* load_max = NULL;
 	char* load_min = NULL;
 	if (__phdr_find_load_bounds_from_fd(fd, (void**)&load_min, (void**)&load_max) < EOK)
 		return -EINVAL;
-	if (load_min > load_max)
-		return -EINVAL;
-	printf ("%p, %p\n", load_min, load_max);
+	size_t alloc_size = load_max - load_min;
+	/* Map memory that could hold all load segments. */
+	dst->base = sys_mmap (	NULL, alloc_size,
+				PROT_NONE,
+				MAP_PRIVATE | MAP_ANONYMOUS,
+				-1, 0);
+	if (dst->base == MAP_FAILED)
+		return -ENOMEM;
+	if (__phdr_mmap_load (dst->base, fd) < 0)
+		return -ENOMEM;
 	return EOK;
 }
 
@@ -62,17 +115,17 @@ static inline int so_load_deps (
 			strncat (filepath, "/", FPATH_MAX);
 			strncat (filepath, filename, FPATH_MAX);
 
-			int fd = open (filepath, O_RDONLY);
+			int fd = sys_open (filepath, O_RDONLY);
 			if (fd < 0)
 				continue;
 			/* If file exists, load it into memory, build mem descriptor, then exit */
 			struct so_mem_desc dummy;
 			if (so_mmap_fd (&dummy, p, fd) < EOK) {
-				close (fd);
+				sys_close (fd);
 				*failname = filename;
 				return -EINVAL;
 			}
-			close (fd);
+			sys_close (fd);
 		}
 	}
 	return EOK;

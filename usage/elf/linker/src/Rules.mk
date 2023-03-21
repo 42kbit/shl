@@ -9,6 +9,9 @@ TGTS_$(d)	:=$(bd)/linker
 TGT_LINKER	:=$(TGTS_$(d))
 LINKER_ROOT	:=$(d)
 
+LINKER_ABI	:=linux-system-v-x86-64
+LINKER_ABI_ROOT	:=$(d)/abi/$(LINKER_ABI)
+
 CF_$(d)		:=					\
 		$(CF_$(d))				\
 		-I$(d)/include				\
