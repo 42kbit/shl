@@ -1,6 +1,9 @@
 #ifndef __H_USAGE_ELF_LINKER_SRC_ABI_LINUX_SYSTEM_V_X86_64_INCLUDE_ABI_SYSCALLS_H
 #define __H_USAGE_ELF_LINKER_SRC_ABI_LINUX_SYSTEM_V_X86_64_INCLUDE_ABI_SYSCALLS_H
 
+#include <stdlib.h>
+#include <lib/cmn.h>
+
 #define PROT_NONE	0x0
 #define PROT_READ	0x1
 #define PROT_WRITE	0x2

@@ -5,8 +5,6 @@
 #include <lib/io.h>
 #include <lib/string.h>
 #include <lib/cmn.h>
-#include <unistd.h>
-#include <stdlib.h>
 
 #include <abi/syscalls.h>
 

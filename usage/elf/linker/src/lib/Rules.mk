@@ -3,6 +3,7 @@ ASMOBJS_$(d)	:=
 COBJS_$(d)	:=		\
 		$(od)/io.o	\
 		$(od)/string.o	\
+		$(od)/mem.o	\
 		$(od)/getenv.o
 
 
