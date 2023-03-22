@@ -18,9 +18,9 @@ static inline int __read_phdr (struct elfw(phdr)* dst, struct elfw(ehdr)* ehdr,
 			       int fd, int idx)
 {
 	if (sys_lseek (fd, ehdr->e_phoff + idx * ehdr->e_phentsize, SEEK_SET) < 0)
-			return -EINVAL;
+			return -E2BIG;
 	if (sys_read (fd, dst, sizeof(struct elfw(phdr))) < 0)
-			return -EINVAL;
+			return -EIO;
 	return EOK;
 }
 
@@ -38,7 +38,7 @@ static inline int __phdr_find_load_bounds_from_fd (int fd, void** min, void** ma
 
 		if (phdr.p_type != PT_LOAD)
 			continue;
-		void* lower = ptralign(phdr.p_vaddr, PAGE_SIZE);
+		void* lower = ptralign_low(phdr.p_vaddr, PAGE_SIZE);
 		void* upper = ptralign(ptradd(phdr.p_vaddr, phdr.p_memsz), PAGE_SIZE);
 		*min = (void*)MIN((addr_t)*min, (addr_t)lower);
 		*max = (void*)MAX((addr_t)*max, (addr_t)upper);
@@ -46,35 +46,53 @@ static inline int __phdr_find_load_bounds_from_fd (int fd, void** min, void** ma
 	return EOK;
 }
 
-static inline int __phdr_mmap_load (void* _base, int fd) {
-	char* base = _base;
+static inline int __phdr_mmap_load (struct so_mem_desc* dst, int fd) {
+	char* base = dst->base;
 
 	/* Read ehdr to stack */
 	struct elfw(ehdr) ehdr;
 	__read_ehdr (&ehdr, fd);
+	
+	void* dynamic = NULL;
 	
 	/* Iterate over phdrs, finding min and max load address */
 	for (int i = 0; i < ehdr.e_phnum; i++){
 		struct elfw(phdr) phdr;
 		__read_phdr (&phdr, &ehdr, fd, i);
 		
-		elfw(off) offset = align(phdr.p_offset, PAGE_SIZE);
 
+		if (phdr.p_type == PT_DYNAMIC) {
+			dynamic = ptradd (base, phdr.p_vaddr);
+			continue;
+		}
 		if (phdr.p_type != PT_LOAD)
 			continue;
+		
+		elfw(off) offset = align_low(phdr.p_offset, PAGE_SIZE);
 		int prot = 	(phdr.p_flags & PF_R ? PROT_READ  : 0) |
 				(phdr.p_flags & PF_W ? PROT_WRITE : 0) |
 				(phdr.p_flags & PF_X ? PROT_EXEC  : 0) ;
-		void* sect = sys_mmap (base + phdr.p_vaddr, phdr.p_memsz, prot,
+
+		char* lower = ptralign_low(phdr.p_vaddr, PAGE_SIZE);
+		char* upper = ptralign(ptradd(phdr.p_vaddr, phdr.p_memsz), PAGE_SIZE);
+		size_t segsize = upper - lower;
+		void* sect = sys_mmap (ptradd(base, lower), segsize, prot,
 				   MAP_PRIVATE | MAP_FIXED, fd, offset);
 		if (sect == MAP_FAILED)
 			return -EINVAL;
 	}
+	if (!dynamic)
+		return -EINVAL;
+	so_mem_init_dynamic (dst, dynamic);
 	return EOK;
 }
 
 /* Memory maps ELF file descriptor. After setups descriptor, pointed by dst */
-static inline int so_mmap_fd (struct so_mem_desc* dst, const struct so_mem_desc* p, int fd) {
+static inline int so_mmap_fd (
+			struct so_mem_desc* dst,
+			const struct so_mem_desc* p,
+			int fd)
+{
 	char* load_max = NULL;
 	char* load_min = NULL;
 	if (__phdr_find_load_bounds_from_fd(
@@ -90,7 +108,7 @@ static inline int so_mmap_fd (struct so_mem_desc* dst, const struct so_mem_desc*
 				-1, 0);
 	if (dst->base == MAP_FAILED)
 		return -ENOMEM;
-	if (__phdr_mmap_load (dst->base, fd) < 0)
+	if (__phdr_mmap_load (dst, fd) < 0)
 		return -ENOMEM;
 	return EOK;
 }
@@ -127,11 +145,13 @@ static inline int __load_deps_for_file (struct so_mem_desc* p,
 		 *  build mem descriptor, then exit
 		 */
 		struct so_mem_desc dummy;
+		memzero (&dummy);
 		if (so_mmap_fd (&dummy, p, fd) < EOK) {
 			sys_close (fd);
 			*failname = filename;
 			return -EINVAL;
 		}
+		printf ("%p\n", dummy.dynamic->d_tag);
 		sys_close (fd);
 	}
 	return EOK;

@@ -51,8 +51,13 @@ static inline void* __ptralign (void* p1, addr_t alignment){
 	return (void*)align((addr_t)p1, alignment);
 }
 
+static inline void* __ptralign_low (void* p1, addr_t alignment){
+	return (void*)align_low((addr_t)p1, alignment);
+}
+
 #define ptradd(p1,p2)	__ptradd ((void*)p1, (void*)p2)
 #define ptralign(p1,n)	__ptralign ((void*)p1, (addr_t)n)
+#define ptralign_low(p1,n) __ptralign_low ((void*)p1, (addr_t)n)
 
 typedef char sym;
 #define __symval(x, type) (type)(&x)

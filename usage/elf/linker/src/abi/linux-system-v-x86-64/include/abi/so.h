@@ -51,32 +51,12 @@ static inline int so_mem_foreach_callback_dynamic (
 	return retval;
 }
 
-static inline int so_mem_init_desc_from_phdr (
+static inline int so_mem_init_dynamic (
 			struct so_mem_desc* p,
-			struct elfw(phdr)* phdr,
-			elfw(half) phnum)
+			struct elfw(dyn)* dynamic)
 {
-	memzero (p);
+	p->dynamic = dynamic;
 
-	/* The pointer itself is valid, cuz it points into ELF ehdr,
-	 * but content of header itself is undefined
-	 * (no word about it in System V ABI),
-	 * so p->base is valid(?) for ELF version 1.
-	*/
-	p->base = (char*)phdr - sizeof(struct elfw(ehdr));
-
-	for (int i = 0; i < phnum; i++) {
-		struct elfw(phdr)* iter = &phdr[i];
-		switch(iter->p_type){
-		case PT_DYNAMIC:
-			p->dynamic = ptradd(p->base, iter->p_vaddr);
-			continue;
-		}
-	}
-	
-	if (!p->dynamic)
-		return -EINVAL;
-	
 	elfw(word) rela_entsz = 0;
 	elfw(word) rela_tblsz = 0;
 
@@ -107,6 +87,36 @@ static inline int so_mem_init_desc_from_phdr (
 	if (rela_entsz != 0)
 		p->rela_nent = rela_tblsz / rela_entsz;
 
+	return EOK;
+}
+
+static inline int so_mem_init_desc_from_phdr (
+			struct so_mem_desc* p,
+			struct elfw(phdr)* phdr,
+			elfw(half) phnum)
+{
+	memzero (p);
+
+	/* The pointer itself is valid, cuz it points into ELF ehdr,
+	 * but content of header itself is undefined
+	 * (no word about it in System V ABI),
+	 * so p->base is valid(?) for ELF version 1.
+	*/
+	p->base = (char*)phdr - sizeof(struct elfw(ehdr));
+	void* dynamic = NULL;
+
+	for (int i = 0; i < phnum; i++) {
+		struct elfw(phdr)* iter = &phdr[i];
+		switch(iter->p_type){
+		case PT_DYNAMIC:
+			dynamic = ptradd(p->base, iter->p_vaddr);
+			continue;
+		}
+	}
+	
+	if (!dynamic)
+		return -EINVAL;
+	so_mem_init_dynamic (p, dynamic);
 	return EOK;
 }
 
