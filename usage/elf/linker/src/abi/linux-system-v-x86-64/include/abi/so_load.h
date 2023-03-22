@@ -77,7 +77,10 @@ static inline int __phdr_mmap_load (void* _base, int fd) {
 static inline int so_mmap_fd (struct so_mem_desc* dst, const struct so_mem_desc* p, int fd) {
 	char* load_max = NULL;
 	char* load_min = NULL;
-	if (__phdr_find_load_bounds_from_fd(fd, (void**)&load_min, (void**)&load_max) < EOK)
+	if (__phdr_find_load_bounds_from_fd(
+				fd,
+				(void**)&load_min,
+				(void**)&load_max) < EOK)
 		return -EINVAL;
 	size_t alloc_size = load_max - load_min;
 	/* Map memory that could hold all load segments. */
@@ -92,43 +95,55 @@ static inline int so_mmap_fd (struct so_mem_desc* dst, const struct so_mem_desc*
 	return EOK;
 }
 
-/* Returns error code.
- * If fails, filename string pointer is written to *failname
- */
 #define FPATH_MAX 0x1000
-static inline int so_load_deps (
+static inline int __load_deps_for_file (struct so_mem_desc* p,
+					 struct elfw(dyn)* iter,
+					 void* _data)
+{
+	void** data = (void**)_data;
+	struct shl_list_node* search_dirs = (struct shl_list_node*)data[0];
+	const char** failname = (const char**)data[1];
+
+	if (iter->d_tag != DT_NEEDED)
+		return CB_NEXT;
+
+	/* Checks through search dirs by given filename in dynamic segment */
+	struct shl_list_node* liter;
+	struct libdir* liter_ent;
+	shl_list_for_each_entry_auto (search_dirs, liter, liter_ent, list) {
+
+		char filepath [FPATH_MAX] = {0};
+		const char* filename = so_mem_strtab_off(p, iter->d_un.d_val);
+
+		/* Build path */
+		strncat (filepath, liter_ent->path, FPATH_MAX);
+		strncat (filepath, "/", FPATH_MAX);
+		strncat (filepath, filename, FPATH_MAX);
+
+		int fd = sys_open (filepath, O_RDONLY);
+		if (fd < 0)
+			continue;
+		/* If file exists, load it into memory,
+		 *  build mem descriptor, then exit
+		 */
+		struct so_mem_desc dummy;
+		if (so_mmap_fd (&dummy, p, fd) < EOK) {
+			sys_close (fd);
+			*failname = filename;
+			return -EINVAL;
+		}
+		sys_close (fd);
+	}
+	return EOK;
+}
+
+static inline int so_mem_load_deps (
 			struct so_mem_desc* p,
 			struct shl_list_node* search_dirs,
 			const char** failname)
 {
-	for (struct elfw(dyn)** iter = p->dyn_needed; *iter != NULL; iter++)
-	{
-		struct shl_list_node* liter;
-		struct libdir* liter_ent;
-		shl_list_for_each_entry_auto (search_dirs, liter, liter_ent, list) {
-
-			char filepath [FPATH_MAX] = {0};
-			const char* filename = so_mem_strtab_off(p, (*iter)->d_un.d_val);
-
-			/* Build path */
-			strncat (filepath, liter_ent->path, FPATH_MAX);
-			strncat (filepath, "/", FPATH_MAX);
-			strncat (filepath, filename, FPATH_MAX);
-
-			int fd = sys_open (filepath, O_RDONLY);
-			if (fd < 0)
-				continue;
-			/* If file exists, load it into memory, build mem descriptor, then exit */
-			struct so_mem_desc dummy;
-			if (so_mmap_fd (&dummy, p, fd) < EOK) {
-				sys_close (fd);
-				*failname = filename;
-				return -EINVAL;
-			}
-			sys_close (fd);
-		}
-	}
-	return EOK;
+	void * args [2] = {search_dirs, failname};
+	return so_mem_foreach_callback_dynamic (p, __load_deps_for_file, args);
 }
 
 #endif /* __H_USAGE_ELF_LINKER_SRC_ABI_LINUX_SYSTEM_V_X86_64_INCLUDE_ABI_SO_LOAD_H */

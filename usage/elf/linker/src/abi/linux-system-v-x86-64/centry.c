@@ -44,8 +44,11 @@ int pre_main(int argc, const char* argv[], const char* envp[]){
 	*/
 	struct so_mem_desc aux_exec;
 	int retval;
-	if ((retval = so_init_mem_desc_from_phdr (&aux_exec, auxvals[AT_PHDR]->a_un.a_ptr,
-				auxvals[AT_PHNUM]->a_un.a_val)) < EOK){
+	if ((retval = so_mem_init_desc_from_phdr (
+				&aux_exec,
+				auxvals[AT_PHDR]->a_un.a_ptr,
+				auxvals[AT_PHNUM]->a_un.a_val)) < EOK)
+	{
 		panic ("Init from aux error!\n");
 	}
 	
@@ -58,15 +61,21 @@ int pre_main(int argc, const char* argv[], const char* envp[]){
 	struct libdir ld_library_path_node;
 	const char* ld_library_path = __envp_find (envp, "LD_LIBRARY_PATH");
 	if (ld_library_path != NULL)
-		libdir_add_search_path (&libdirs_head, &(ld_library_path_node.list), ld_library_path);
+		libdir_add_search_path (&libdirs_head,
+					&(ld_library_path_node.list),
+					ld_library_path);
 	
 	const char* failname = NULL;
-	if ((retval = so_load_deps (&aux_exec, &libdirs_head, &failname)) < EOK){
+	if ((retval = so_mem_load_deps (
+				&aux_exec,
+				&libdirs_head,
+				&failname)) < EOK)
+	{
 		panic ("Dependency %s load error!\n", failname);
 	}
 	
-	/* Before giving control to executable, make sure to push argc, argv[] and envp[]
-	 * according to System V ABI x86-64, but for now, we dont care.
+	/* Before giving control to executable, make sure to push argc, argv[]
+	 * and envp[] according to System V ABI x86-64, but for now, we dont care.
 	 */
 
 	while (1);
