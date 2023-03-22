@@ -1,8 +1,7 @@
-ASMOBJS_$(d)	:=			\
-		$(od)/entry.o		\
-		$(od)/syscalls.o
-
-COBJS_$(d)	:=$(od)/centry.o
+ASMOBJS_$(d)	:=
+COBJS_$(d)	:=			\
+		$(od)/so_mem.o		\
+		$(od)/so_mem_load.o	\
 
 OBJS_$(d)	:=$(ASMOBJS_$(d)) $(COBJS_$(d))
 
@@ -21,11 +20,5 @@ ASF_$(d)	:=					\
 		$(ASF_$(d))				\
 		-I$(d)/include
 
-LF_$(TGT_LINKER):=					\
-		$(LF_$(TGT_LINKER))			\
-		-T $(d)/linux-system-v-x86-64.ld
-
 $(d): $(TGT_LINKER)
-$(TGT_LINKER):	$(OBJS_$(d)) $(d)/linux-system-v-x86-64.ld
-
-SUBDIRS_$(d)	:=lib so
+$(TGT_LINKER):	$(OBJS_$(d))
