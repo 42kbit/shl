@@ -2,6 +2,7 @@ ASMOBJS_$(d)	:=
 COBJS_$(d)	:=			\
 		$(od)/so_mem.o		\
 		$(od)/so_mem_load.o	\
+		$(od)/so_mem_rela.o
 
 OBJS_$(d)	:=$(ASMOBJS_$(d)) $(COBJS_$(d))
 

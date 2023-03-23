@@ -27,16 +27,14 @@ LF_$(TGT_EXEC_$(d))	:=				\
 		-dynamic-linker,$(LINKER_BINARY)	\
 		-nostdlib 				\
 		-L$(bd)					\
-		-ltest
+		-ltest					\
+		-Wl,--hash-style=sysv
 
 LF_$(TGT_LTEST_$(d))	:=				\
 		-nostdlib 				\
-		-shared
-
-PURE_LD	= ld \
-	$(LF_ALL) \
-	$(LF_$@) \
-	-o $@ $(filter %.o,$^)
+		-shared					\
+		-Wl,--hash-style=sysv
+		
 
 $(call append,TGT_BIN,$(d))
 $(d): $(TGT_EXEC_$(d))

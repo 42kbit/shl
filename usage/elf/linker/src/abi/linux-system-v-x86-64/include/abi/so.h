@@ -20,14 +20,19 @@ struct so_mem_desc {
 	void	*base;
 	void	**got;
 	struct elfw(dyn)  *dynamic;
+	
+	/* System V Hash (Not GNU) */
+	elfw(word)* hash;
 
 	struct elfw(rela) *rela;
 	elfw(word) rela_nent;
-
-	const char* strtbl;
+	
+	struct elfw(sym)* symtab;
+	const char* strtab;
 };
 
 const char* so_mem_strtab_off (struct so_mem_desc* p, unsigned int offset);
+elfw(word) so_mem_symtab_len (struct so_mem_desc* p);
 
 #define CB_NEXT EOK
 int so_mem_foreach_callback_dynamic (

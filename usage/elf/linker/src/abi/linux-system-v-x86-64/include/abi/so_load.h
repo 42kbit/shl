@@ -6,9 +6,9 @@
 
 #include <abi/syscalls.h>
 
-int so_mmap_fd (struct so_mem_desc* dst,
-		const struct so_mem_desc* p,
-		int fd);
+int so_mem_mmap_fd (	struct so_mem_desc* dst,
+			const struct so_mem_desc* p,
+			int fd);
 
 int so_mem_load_deps (	struct so_mem_desc* p,
 			struct shl_list_node* search_dirs,

@@ -6,7 +6,7 @@ const char* so_mem_strtab_off (
 			struct so_mem_desc* p,
 			unsigned int offset)
 {
-	return p->strtbl + offset;
+	return &p->strtab[offset];
 }
 
 int so_mem_foreach_callback_dynamic (
@@ -42,7 +42,10 @@ int so_mem_init_dynamic (
 
 		switch (iter->d_tag){
 		case DT_STRTAB:
-			p->strtbl = ptradd (p->base, iter->d_un.d_ptr);
+			p->strtab = ptradd (p->base, iter->d_un.d_ptr);
+			continue;
+		case DT_SYMTAB:
+			p->symtab = ptradd (p->base, iter->d_un.d_ptr);
 			continue;
 		case DT_PLTGOT:
 			p->got = ptradd(p->base, iter->d_un.d_ptr);
@@ -56,6 +59,11 @@ int so_mem_init_dynamic (
 		case DT_RELASZ:
 			rela_tblsz = iter->d_un.d_val;
 			continue;
+		case DT_HASH:
+			p->hash = ptradd (p->base, iter->d_un.d_ptr);
+			continue;
+		case DT_GNU_HASH:
+			return -EINVAL; /* GNU hash is not supported */
 		}
 	}
 	if (rela_entsz != 0)
@@ -90,6 +98,11 @@ int so_mem_init_desc_from_phdr (
 	
 	if (!dynamic)
 		return -EINVAL;
-	so_mem_init_dynamic (p, dynamic);
+	if (so_mem_init_dynamic (p, dynamic) < EOK)
+		return -EINVAL;
 	return EOK;
+}
+
+elfw(word) so_mem_symtab_len (struct so_mem_desc* p) {
+	return p->hash[1];
 }

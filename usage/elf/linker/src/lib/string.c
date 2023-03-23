@@ -43,10 +43,7 @@ char * strcat (char * s1, const char * s2){
 }
 
 int strcmp (const char* s1, const char* s2){
-	for (int i = 0; s1[i] != '\0' && s2[i] != '\0'; i++){
-		int s;
-		if ((s = s2[i] - s1[i]) != 0)
-			return s;
-	}
-	return 0;
+	int c;
+	while ((c =*(s2++) - *(s1++)) == 0 && *s1 && *s2);
+	return c;
 }

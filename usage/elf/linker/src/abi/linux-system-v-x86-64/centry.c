@@ -8,6 +8,7 @@
 #include <abi/aux.h>
 #include <abi/so.h>
 #include <abi/so_load.h>
+#include <abi/so_rela.h>
 #include <abi/page.h>
 
 const char* __envp_find (const char** envp, const char* ename);
@@ -74,11 +75,13 @@ int pre_main(int argc, const char* argv[], const char* envp[]){
 		panic ("Dependency %s load error!\n", failname);
 	}
 	
+	printf ("%p\n", so_mem_get_symbol_by_name (&aux_exec, "test_val"));
+	
 	/* Before giving control to executable, make sure to push argc, argv[]
 	 * and envp[] according to System V ABI x86-64, but for now, we dont care.
 	 */
 
-	while (1);
+	sys_exit (0);
 	/* Will segfault for now due to lack of relocation mechanism */
 	void (*entry)() = auxvals[AT_ENTRY]->a_un.a_ptr;
 	entry();

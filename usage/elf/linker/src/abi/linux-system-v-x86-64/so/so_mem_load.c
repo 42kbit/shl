@@ -81,10 +81,16 @@ static inline int __phdr_mmap_load (struct so_mem_desc* dst, int fd) {
 				   MAP_PRIVATE | MAP_FIXED, fd, offset);
 		if (sect == MAP_FAILED)
 			return -EINVAL;
+		ptrdiff_t diff = phdr.p_memsz - phdr.p_filesz;
+		if (diff > 0) {
+			/* Zero memory left */
+			memset (base + phdr.p_vaddr + phdr.p_memsz, 0, diff);
+		}
 	}
 	if (!dynamic)
 		return -EINVAL;
-	so_mem_init_dynamic (dst, dynamic);
+	if (so_mem_init_dynamic (dst, dynamic) < EOK)
+		return -EINVAL;
 	return EOK;
 }
 
@@ -122,7 +128,7 @@ static inline int __load_deps_for_file (struct so_mem_desc* p,
 		 */
 		struct so_mem_desc dummy;
 		memzero (&dummy);
-		if (so_mmap_fd (&dummy, p, fd) < EOK) {
+		if (so_mem_mmap_fd (&dummy, p, fd) < EOK) {
 			sys_close (fd);
 			*failname = filename;
 			return -EINVAL;
@@ -132,7 +138,7 @@ static inline int __load_deps_for_file (struct so_mem_desc* p,
 	return EOK;
 }
 
-int so_mmap_fd (struct so_mem_desc* dst,
+int so_mem_mmap_fd (struct so_mem_desc* dst,
 		const struct so_mem_desc* p,
 		int fd)
 {
