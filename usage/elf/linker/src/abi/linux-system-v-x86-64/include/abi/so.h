@@ -3,6 +3,7 @@
 
 #include <shl_elf.h>
 #include <shl_list.h>
+
 #include <lib/string.h>
 #include <lib/io.h>
 #include <stdbool.h>
@@ -26,9 +27,14 @@ struct so_mem_desc {
 
 	struct elfw(rela) *rela;
 	elfw(word) rela_nent;
+
+	struct elfw(rela) *rela_plt;
+	elfw(word) rela_plt_nent;
 	
 	struct elfw(sym)* symtab;
 	const char* strtab;
+	
+	struct shl_list_node loaded_list;
 };
 
 const char* so_mem_strtab_off (struct so_mem_desc* p, unsigned int offset);
@@ -43,6 +49,8 @@ int so_mem_foreach_callback_dynamic (
 				void* data
 			),
 			void* data);
+
+void so_mem_init (struct so_mem_desc* p);
 
 int so_mem_init_dynamic (struct so_mem_desc* p,
 			 struct elfw(dyn)* dynamic);

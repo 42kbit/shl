@@ -4,8 +4,8 @@ extern int test_val;
 int get_new_test_val (void);
 
 void _start(void){
-	volatile int* wtf = &test_val;
-	*(wtf) = get_new_test_val ();
+	int wtf = test_val;
+	int wtf2 = get_new_test_val ();
 	while (1);
 }
 

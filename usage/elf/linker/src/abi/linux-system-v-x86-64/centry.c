@@ -24,7 +24,7 @@ static inline void parse_auxp (struct auxv** dst, struct auxv* raw_auxv) {
 	}
 }
 
-int pre_main(int argc, const char* argv[], const char* envp[]){
+void pre_main(int argc, const char* argv[], const char* envp[]){
 	/* Seek end of envp[] */
 	const char** iter;
 	for (iter = envp; *iter != NULL; iter++)
@@ -44,6 +44,7 @@ int pre_main(int argc, const char* argv[], const char* envp[]){
 	 * LOAD type segments are already loaded.
 	*/
 	struct so_mem_desc aux_exec;
+	so_mem_init (&aux_exec);
 	int retval;
 	if ((retval = so_mem_init_desc_from_phdr (
 				&aux_exec,
@@ -65,23 +66,38 @@ int pre_main(int argc, const char* argv[], const char* envp[]){
 		libdir_add_search_path (&libdirs_head,
 					&(ld_library_path_node.list),
 					ld_library_path);
+
+	struct shl_list_node loaded_so_head;
+	shl_list_init_head (&loaded_so_head);
 	
+	shl_list_insert_safe (&loaded_so_head, &aux_exec.loaded_list);
+
 	const char* failname = NULL;
 	if ((retval = so_mem_load_deps (
 				&aux_exec,
 				&libdirs_head,
+				&loaded_so_head,
 				&failname)) < EOK)
 	{
 		panic ("Dependency %s load error!\n", failname);
 	}
-	
-	printf ("%p\n", so_mem_get_symbol_by_name (&aux_exec, "test_val"));
+
+
+	struct shl_list_node* liter = NULL;
+	struct so_mem_desc* liter_ent = NULL;
+	shl_list_for_each_entry_auto ((&loaded_so_head), liter,
+				      liter_ent, loaded_list)
+	{
+		if (so_mem_init_rela (liter_ent) < EOK)
+			panic ("Failed to initialize relocations\n");
+		if (so_mem_resolve_symbols (liter_ent, &loaded_so_head) < EOK)
+			panic ("Failed to resolve symbols\n");
+	}
 	
 	/* Before giving control to executable, make sure to push argc, argv[]
 	 * and envp[] according to System V ABI x86-64, but for now, we dont care.
 	 */
 
-	sys_exit (0);
 	/* Will segfault for now due to lack of relocation mechanism */
 	void (*entry)() = auxvals[AT_ENTRY]->a_un.a_ptr;
 	entry();

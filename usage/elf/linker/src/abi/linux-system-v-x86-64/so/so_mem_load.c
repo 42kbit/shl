@@ -97,12 +97,13 @@ static inline int __phdr_mmap_load (struct so_mem_desc* dst, int fd) {
 
 #define FPATH_MAX 0x1000
 static inline int __load_deps_for_file (struct so_mem_desc* p,
-					 struct elfw(dyn)* iter,
-					 void* _data)
+					struct elfw(dyn)* iter,
+					void* _data)
 {
 	void** data = (void**)_data;
 	struct shl_list_node* search_dirs = (struct shl_list_node*)data[0];
 	const char** failname = (const char**)data[1];
+	struct shl_list_node* loaded_list = (struct shl_list_node*)data[2];
 
 	if (iter->d_tag != DT_NEEDED)
 		return CB_NEXT;
@@ -126,14 +127,20 @@ static inline int __load_deps_for_file (struct so_mem_desc* p,
 		/* If file exists, load it into memory,
 		 *  build mem descriptor, then exit
 		 */
-		struct so_mem_desc dummy;
-		memzero (&dummy);
-		if (so_mem_mmap_fd (&dummy, p, fd) < EOK) {
+		struct so_mem_desc* dep = malloc (sizeof(*dep));
+		so_mem_init (dep);
+		if (so_mem_mmap_fd (dep, p, fd) < EOK) {
 			sys_close (fd);
+			free (dep);
 			*failname = filename;
 			return -EINVAL;
 		}
+		shl_list_insert_safe (loaded_list, &(dep->loaded_list));
 		sys_close (fd);
+		/*
+		if (so_mem_load_deps (dep, search_dirs, loaded_list, failname) < EOK)
+			return -ENOMEM;
+		*/
 	}
 	return EOK;
 }
@@ -164,8 +171,11 @@ int so_mem_mmap_fd (struct so_mem_desc* dst,
 
 int so_mem_load_deps (	struct so_mem_desc* p,
 			struct shl_list_node* search_dirs,
+			struct shl_list_node* loaded_list,
 			const char** failname)
 {
-	void * args [2] = {search_dirs, failname};
-	return so_mem_foreach_callback_dynamic (p, __load_deps_for_file, args);
+	void * args [3] = {search_dirs, failname, loaded_list};
+	if (so_mem_foreach_callback_dynamic (p, __load_deps_for_file, args) < 0)
+		return -EINVAL;
+	return EOK;
 }

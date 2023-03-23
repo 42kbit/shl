@@ -12,6 +12,7 @@ int so_mem_mmap_fd (	struct so_mem_desc* dst,
 
 int so_mem_load_deps (	struct so_mem_desc* p,
 			struct shl_list_node* search_dirs,
+			struct shl_list_node* loaded_list,
 			const char** failname);
 
 #endif /* __H_USAGE_ELF_LINKER_SRC_ABI_LINUX_SYSTEM_V_X86_64_INCLUDE_ABI_SO_LOAD_H */

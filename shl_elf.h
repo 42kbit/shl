@@ -1161,6 +1161,15 @@ typedef elf64_versym	Elf64_Versym;
 /* Keep this the last entry.  */
 #define R_386_NUM	   44
 
+#define ELF32_R_SYM(info)		((info)>>8)
+#define ELF32_R_TYPE(info)		((unsigned char)(info))
+#define ELF32_R_INFO(sym, type)		(((sym)<<8)+(unsigned char)(type))
+
+#define ELF64_R_SYM(info)		((info)>>32)
+#define ELF64_R_TYPE(info)		((Elf64_Word)(info))
+#define ELF64_R_INFO(sym, type)		(((Elf64_Xword)(sym)<<32)+ \
+                                        	(Elf64_Xword)(type))
+
 /* SUN SPARC specific definitions.  */
 
 /* Legal values for ST_TYPE subfield of st_info (symbol type).  */

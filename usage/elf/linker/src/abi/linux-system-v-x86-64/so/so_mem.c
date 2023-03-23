@@ -31,9 +31,6 @@ int so_mem_init_dynamic (
 {
 	p->dynamic = dynamic;
 
-	elfw(word) rela_entsz = 0;
-	elfw(word) rela_tblsz = 0;
-
 	/* Now, parse dynamic segment */
 	struct elfw(dyn)* dyntbl = p->dynamic;
 	for (int i = 0; dyntbl[i].d_tag != DT_NULL; i++) {
@@ -53,11 +50,14 @@ int so_mem_init_dynamic (
 		case DT_RELA:
 			p->rela = ptradd(p->base, iter->d_un.d_ptr);
 			continue;
-		case DT_RELAENT:
-			rela_entsz = iter->d_un.d_val;
-			continue;
 		case DT_RELASZ:
-			rela_tblsz = iter->d_un.d_val;
+			p->rela_nent = iter->d_un.d_val / sizeof(struct elfw(rela));
+			continue;
+		case DT_JMPREL:
+			p->rela_plt = ptradd (p->base, iter->d_un.d_ptr);
+			continue;
+		case DT_PLTRELSZ:
+			p->rela_plt_nent = iter->d_un.d_val / sizeof(struct elfw(rela));
 			continue;
 		case DT_HASH:
 			p->hash = ptradd (p->base, iter->d_un.d_ptr);
@@ -66,8 +66,6 @@ int so_mem_init_dynamic (
 			return -EINVAL; /* GNU hash is not supported */
 		}
 	}
-	if (rela_entsz != 0)
-		p->rela_nent = rela_tblsz / rela_entsz;
 
 	return EOK;
 }
@@ -105,4 +103,9 @@ int so_mem_init_desc_from_phdr (
 
 elfw(word) so_mem_symtab_len (struct so_mem_desc* p) {
 	return p->hash[1];
+}
+
+void so_mem_init (struct so_mem_desc* p){
+	memzero (p);
+	shl_list_init_node (&p->loaded_list);
 }
