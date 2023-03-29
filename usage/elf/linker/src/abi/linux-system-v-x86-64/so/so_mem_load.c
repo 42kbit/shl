@@ -117,9 +117,7 @@ static inline int __load_deps_for_file (struct so_mem_desc* p,
 		const char* filename = so_mem_strtab_off(p, iter->d_un.d_val);
 
 		/* Build path */
-		strncat (filepath, liter_ent->path, FPATH_MAX);
-		strncat (filepath, "/", FPATH_MAX);
-		strncat (filepath, filename, FPATH_MAX);
+		sprintf (filepath, "%s/%s", liter_ent->path, filename);
 
 		int fd = sys_open (filepath, O_RDONLY);
 		if (fd < 0)

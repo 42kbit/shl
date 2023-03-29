@@ -85,6 +85,7 @@ void pre_main(int argc, const char* argv[], const char* envp[]){
 
 	struct shl_list_node* liter = NULL;
 	struct so_mem_desc* liter_ent = NULL;
+
 	shl_list_for_each_entry_auto ((&loaded_so_head), liter,
 				      liter_ent, loaded_list)
 	{

@@ -34,10 +34,8 @@ static inline int  __resolve_rela (
 	shl_list_for_each_entry_auto (loaded_list, liter,
 				      liter_ent, loaded_list)
 	{
-		if (liter_ent == p)
-			continue;
-		struct elfw(sym)* found =
-				so_mem_get_symbol_by_name (liter_ent, symname);
+		struct elfw(sym)* found;
+		found = so_mem_get_symbol_by_name (liter_ent, symname);
 		if (!found)
 			continue;
 		__place_rela (p, rela, liter_ent, found);
